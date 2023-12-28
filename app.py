@@ -19,9 +19,16 @@ def transcribe():
     audio_file = request.files["audio"]
     transcription = stt_model.transcribe(audio_file)
     app.logger.info("Transcription Result : " + transcription)
-    processed_text = process_text(transcription)
+    return transcription
+
+
+@app.route("/process", methods=["POST"])
+def process():
+    transcribe_file = request.files["transcribe"]
+    processed_text = process_text(transcribe_file)
+    app.logger.info("Processed Result : " + processed_text)
     return processed_text
 
 
 if __name__ == "__main__":
-    app.run(port=5001, debug=True)
+    app.run(port=5000, debug=True)
