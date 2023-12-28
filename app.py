@@ -1,7 +1,8 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from models.stt_model import STTModel
 from models.nlp_module import process_text
+import json
 
 
 app = Flask(__name__)
@@ -24,10 +25,16 @@ def transcribe():
 
 @app.route("/process", methods=["POST"])
 def process():
-    transcribe_file = request.files["transcribe"]
-    processed_text = process_text(transcribe_file)
-    app.logger.info("Processed Result : " + processed_text)
-    return processed_text
+    if not request.is_json:
+        return jsonify({"error": "Missing JSON in request"}), 400
+
+    try:
+        text_data = request.get_json()
+
+        processed_text = process_text(text_data)
+        return jsonify(processed_text)
+    except json.JSONDecodeError as e:
+        return jsonify({"error": "Invalid JSON"}), 400
 
 
 if __name__ == "__main__":
