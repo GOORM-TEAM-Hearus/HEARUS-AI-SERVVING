@@ -4,6 +4,11 @@ from models.stt_model import STTModel
 from models.nlp_module import process_text
 import json
 
+import whisper
+import numpy as np
+from pydub import AudioSegment
+import io
+
 
 app = Flask(__name__)
 CORS(app)
@@ -14,12 +19,33 @@ stt_model = STTModel(
     "./deepspeech/deepspeech-0.9.3-models.scorer",
 )
 
+# Choose a model size (e.g., "tiny", "base", "small", "medium", "large")
+whisper_model = whisper.load_model("base")
+
 
 @app.route("/transcribe", methods=["POST"])
 def transcribe():
+    # Get the audio file from the request
     audio_file = request.files["audio"]
-    transcription = stt_model.transcribe(audio_file)
-    app.logger.info("Transcription Result : " + transcription)
+
+    # Convert the audio file to the appropriate format
+    audio_format = audio_file.filename.split(".")[-1]
+    audio_segment = AudioSegment.from_file(
+        io.BytesIO(audio_file.read()), format=audio_format
+    )
+
+    # Convert to mono and the required sample rate (16kHz for Whisper)
+    audio_segment = audio_segment.set_frame_rate(16000).set_channels(1)
+
+    # Convert to numpy array
+    audio_numpy = np.array(audio_segment.get_array_of_samples(), dtype=np.float32)
+    audio_numpy = audio_numpy / np.iinfo(audio_segment.array_type).max  # Normalize
+
+    # Transcribe the audio file using Whisper
+    result = whisper_model.transcribe(audio_numpy, language="ko")
+    transcription = result["text"]
+
+    app.logger.info("Transcription Result: " + transcription)
     return transcription
 
 
