@@ -19,7 +19,7 @@ stt_model = STTModel(
     "./deepspeech/deepspeech-0.9.3-models.scorer",
 )
 
-# Choose a model size (e.g., "tiny", "base", "small", "medium", "large")
+# Choose a model size ("tiny", "base", "small", "medium", "large")
 whisper_model = whisper.load_model("base")
 
 
