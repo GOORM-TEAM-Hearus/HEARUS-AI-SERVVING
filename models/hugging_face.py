@@ -1,58 +1,67 @@
-from transformers import pipeline
+from transformers import GPT2LMHeadModel, PreTrainedTokenizerFast
+import torch
 
-# import torch
-# from transformers import AutoTokenizer, AutoModelForCausalLM
-
-# tokenizer = AutoTokenizer.from_pretrained(
-#     "kakaobrain/kogpt",
-#     revision="KoGPT6B-ryan1.5b-float16",  # or float32 version: revision=KoGPT6B-ryan1.5b
-#     bos_token="[BOS]",
-#     eos_token="[EOS]",
-#     unk_token="[UNK]",
-#     pad_token="[PAD]",
-#     mask_token="[MASK]",
-# )
-# model = AutoModelForCausalLM.from_pretrained(
-#     "kakaobrain/kogpt",
-#     revision="KoGPT6B-ryan1.5b-float16",  # or float32 version: revision=KoGPT6B-ryan1.5b
-#     pad_token_id=tokenizer.eos_token_id,
-#     torch_dtype="auto",
-#     low_cpu_mem_usage=True,
-# ).to(device="cuda", non_blocking=True)
-# _ = model.eval()
-
-model_name = "gpt2"
-text_generator = pipeline("text-generation", model=model_name)
+# KoGPT2 모델과 토크나이저 로드
+model_name = "skt/kogpt2-base-v2"
+model = GPT2LMHeadModel.from_pretrained(model_name)
+tokenizer = PreTrainedTokenizerFast.from_pretrained(
+    "skt/kogpt2-base-v2",
+    bos_token="</s>",
+    eos_token="</s>",
+    unk_token="<unk>",
+    pad_token="<pad>",
+    mask_token="<mask>",
+)
 
 
 def create_prompt(keyword, subject):
-    return (
-        f"대한민국의 대학교 '{subject}' 과목에서 다루는 '{keyword}'에 대한 자세한 설명을 제공해줘.\n"
-        "아래의 조건을 만족하는 답변이어야 해.\n"
-        "이 설명은 대학생들이 해당 내용을 이해하는 데 도움이 되어야 해.\n"
-        "설명은 요약식으로 100단어 이내로 제공해.\n"
-        "꼭 설명이 길 필요는 없어 필요한 내용만 간략하게 제공해줘.\n"
-        "설명 이후에 공식이나 코드 등 예시가 필요한 설명의 경우 간략한 예시도 포함해줘.\n"
-    )
+    return f"대학교 '{subject}' 과목에서 다루는 '{keyword}'의 의미는, "
 
 
-def add_comment(text_data):
+def generate_text(prompt, max_length):
+    # Tokenize Prompt
+    input_ids = tokenizer.encode(prompt, return_tensors="pt")
+
+    # Generate Text
+    with torch.no_grad():
+        output = model.generate(
+            input_ids, max_length=max_length, num_return_sequences=1
+        )
+    generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
+
+    return generated_text
+
+
+def add_comment(app, text_data):
     for item in text_data.get("unProcessedText", []):
         if "comment" in item[1]:
-            # subject의 경우 추후 NLP 모델에서 별도로 처리
+            # 전공을 판별하는 것은 추후 개발될 기능
             prompt = create_prompt(item[0], "전공")
+            # 현재 Default Prompt는 아래와 같이 설정
+            prompt = "'{item[0]}'의 의미는, "
 
-            # with torch.no_grad():
-            #     tokens = tokenizer.encode(prompt, return_tensors="pt").to(
-            #         device="cuda", non_blocking=True
-            #     )
-            #     gen_tokens = model.generate(
-            #         tokens, do_sample=True, temperature=0.8, max_length=150
-            #     )
-            #     generated = tokenizer.batch_decode(gen_tokens)[0]
+            try:
+                input_ids = tokenizer.encode(prompt, return_tensors="pt")
+                gen_ids = model.generate(
+                    input_ids,
+                    max_length=50,
+                    repetition_penalty=2.0,
+                    pad_token_id=tokenizer.pad_token_id,
+                    eos_token_id=tokenizer.eos_token_id,
+                    bos_token_id=tokenizer.bos_token_id,
+                    use_cache=True,
+                )
+                generated = tokenizer.decode(gen_ids[0])
 
-            generated = text_generator(prompt, max_length=1000)[0]["generated_text"]
-            end_idx = generated.find("\n", len(prompt))
-            item[2] = generated[len(prompt) : end_idx].strip()
+                # Strip text from Prompt
+                processed_text = generated[len(prompt) :].strip()
+                end_idx = processed_text.find("\n")
+                if end_idx != -1:
+                    processed_text = processed_text[:end_idx].strip()
+
+                app.logger.info(generated)
+                item[2] = processed_text
+            except Exception as e:
+                print(f"Error in generating text: {e}")
 
     return text_data

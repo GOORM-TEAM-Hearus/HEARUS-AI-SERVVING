@@ -10,15 +10,8 @@ import numpy as np
 from pydub import AudioSegment
 import io
 
-
 app = Flask(__name__)
 CORS(app)
-
-
-stt_model = STTModel(
-    "./deepspeech/deepspeech-0.9.3-models.pbmm",
-    "./deepspeech/deepspeech-0.9.3-models.scorer",
-)
 
 # Choose a model size ("tiny", "base", "small", "medium", "large")
 whisper_model = whisper.load_model("base")
@@ -59,7 +52,7 @@ def process():
         text_data = request.get_json()
 
         processed_text = process_text(text_data)
-        processed_text = add_comment(processed_text)
+        processed_text = add_comment(app, processed_text)
         return jsonify(processed_text)
     except json.JSONDecodeError as e:
         return jsonify({"error": "Invalid JSON"}), 400
