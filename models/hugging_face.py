@@ -38,13 +38,13 @@ def add_comment(app, text_data):
             # 전공을 판별하는 것은 추후 개발될 기능
             prompt = create_prompt(item[0], "전공")
             # 현재 Default Prompt는 아래와 같이 설정
-            prompt = "'{item[0]}'의 의미는, "
+            prompt = item[0] + "라는 단어의 사전적 의미는, "
 
             try:
                 input_ids = tokenizer.encode(prompt, return_tensors="pt")
                 gen_ids = model.generate(
                     input_ids,
-                    max_length=50,
+                    max_length=64,
                     repetition_penalty=2.0,
                     pad_token_id=tokenizer.pad_token_id,
                     eos_token_id=tokenizer.eos_token_id,
