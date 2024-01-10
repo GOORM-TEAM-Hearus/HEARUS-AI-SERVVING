@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from models.stt_model import STTModel
 from models.nlp_module import process_text
+from models.hugging_face import add_comment
 import json
 
 import whisper
@@ -58,6 +59,7 @@ def process():
         text_data = request.get_json()
 
         processed_text = process_text(text_data)
+        processed_text = add_comment(processed_text)
         return jsonify(processed_text)
     except json.JSONDecodeError as e:
         return jsonify({"error": "Invalid JSON"}), 400
