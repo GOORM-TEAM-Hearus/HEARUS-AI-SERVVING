@@ -3,6 +3,7 @@ deepspeech
 
 #env
 .env
+env
 
 # pycache
 __pycache__
