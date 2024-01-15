@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from models.stt_model import STTModel
 from models.nlp_module import process_text
 from models.hugging_face import add_comment
 import json
