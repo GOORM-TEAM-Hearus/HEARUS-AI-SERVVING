@@ -36,4 +36,6 @@ class HugPipeline:
         '''
         prompt = self.create_prompt(keyword=keyword,subject=subject)
         outputs = self.pipe(prompt, max_new_tokens=256, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
-        return outputs[0]["generated_text"]
+        filtered_output= outputs[0]["generated_text"]
+        pos_assistant = filtered_output.find('<|assistant|>')
+        return filtered_output[pos_assistant+len('<|assistant|>')+1:]
