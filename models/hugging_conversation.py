@@ -17,6 +17,23 @@ class HugPipeline:
         return self.pipe.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
 
     def question(self,keyword:str, subject:str):
+        '''
+        어떤 전공의 용어를 알고싶을때 씁니다.
+        
+        Parameters
+        ----------
+        keyword : str
+        용어.
+        subject : str
+        전공.
+        
+        Examples
+        --------
+        
+        hp = HugPipeline()
+        hp.question(keyword='관성',subject='물리학')
+        >> 관성은 물리학적 개체 또는 시스템이 일정 속도로 이동하는 상태에 있을때,.....
+        '''
         prompt = self.create_prompt(keyword=keyword,subject=subject)
         outputs = self.pipe(prompt, max_new_tokens=256, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
         return outputs[0]["generated_text"]
