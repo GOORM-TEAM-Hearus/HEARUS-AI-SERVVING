@@ -4,3 +4,7 @@ numpy
 pydub
 transformers
 accelerate
+torch
+tokenizers
+gpt4all
+utils
