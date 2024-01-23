@@ -17,6 +17,19 @@ CORS(app)
 whisper_model = whisper.load_model("base")
 
 
+# Numpy Encoder for JSON Format data
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return super(NpEncoder, self).default(obj)
+
+
 @app.route("/transcribe", methods=["POST"])
 def transcribe():
     # Get the audio file from the request
@@ -39,7 +52,7 @@ def transcribe():
     result = whisper_model.transcribe(audio_numpy, language="ko")
     transcription = result["text"]
 
-    app.logger.info("Transcription Result: " + transcription)
+    app.logger.info("\n\nTranscription Result: " + transcription)
     return transcription
 
 
@@ -57,14 +70,19 @@ def process():
             dataFrame["important_words"][0],
             dataFrame["important_sentence"][0],
         )
-        app.logger.inf("DictData : " + nlpResultDictData)
-        # nlpResultJsonData = json.dumps(nlpResultDictData)
 
-        # app.logger.inf(nlpResultJsonData)
+        print("\n\nprocess_json_data result: ")
+        print(dataFrame["important_words"][0])
+        print(dataFrame["important_sentence"][0])
+
+        nlpResultJsonData = json.dumps(
+            nlpResultDictData, cls=NpEncoder, ensure_ascii=False, indent=4
+        )
+        addCommentDictData = json.loads(nlpResultJsonData)
 
         # GPT API 호출, 서버로 반환
-        # processed_data = add_comment(app, processed_data)
-        # return jsonify(processed_data)
+        final_processed_data = add_comment(app, addCommentDictData)
+        return jsonify(final_processed_data)
     except json.JSONDecodeError as e:
         return jsonify({"error": "Invalid JSON"}), 400
 

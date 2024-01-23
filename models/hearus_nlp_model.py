@@ -150,7 +150,6 @@ def process_json_data(file_path):
         imp_words = sorted(scores, key=scores.get, reverse=True)[:5]
         important_words_list.append(imp_words)
 
-    # 결과 저장
     df["important_sentence"] = important_sentences
     df["important_words"] = important_words_list
 
@@ -169,11 +168,13 @@ def process_data_to_json(df, important_words, important_sentences):
             l[1] = "comment"
         elif l[0] in important_sentences:
             l[1] = "highlight"
+        elif l[0] != "br":
+            l[1] = "none"
 
     dictData = {}
     dictData["arrStart"] = df["arrStart"][0]
     dictData["arrEnd"] = df["arrEnd"][0]
-    dictData["unprocessedText"] = df_unpro
+    dictData["unProcessedText"] = df_unpro
     dictData["sumText"] = df["sumText"][0]
 
     return dictData
