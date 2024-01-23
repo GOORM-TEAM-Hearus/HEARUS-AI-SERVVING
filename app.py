@@ -78,11 +78,15 @@ def process():
         nlpResultJsonData = json.dumps(
             nlpResultDictData, cls=NpEncoder, ensure_ascii=False, indent=4
         )
-        addCommentDictData = json.loads(nlpResultJsonData)
 
-        # GPT API 호출, 서버로 반환
-        final_processed_data = add_comment(app, addCommentDictData)
-        return jsonify(final_processed_data)
+        # GPT API 호출
+        # GPT 모델의 시간이 너무 높아서 별도의 요청으로 처리하는 것으로 한다
+        # Whisper 라이브러리와 NLP 모델 사용을 각각 비동기로 처리한다.
+        # addCommentDictData = json.loads(nlpResultJsonData)
+        # final_processed_data = add_comment(app, addCommentDictData)
+
+        # 서버로 반환
+        return jsonify(nlpResultJsonData)
     except json.JSONDecodeError as e:
         return jsonify({"error": "Invalid JSON"}), 400
 

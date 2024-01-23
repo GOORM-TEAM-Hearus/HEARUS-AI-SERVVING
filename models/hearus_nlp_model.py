@@ -163,13 +163,43 @@ import json
 def process_data_to_json(df, important_words, important_sentences):
     # df_unpro가 words에 속한다면 'comment', sentence에 속한다면 'highlight'로 변경
     df_unpro = df["unProcessedText"].tolist()
+
+    for l in df_unpro:
+        if l[1] != "br":
+            l[1] = "none"
+
     for l in df_unpro:
         if l[0] in important_words:
             l[1] = "comment"
-        elif l[0] in important_sentences:
-            l[1] = "highlight"
-        elif l[0] != "br":
-            l[1] = "none"
+
+    # Flatten the unprocessedText to reconstruct sentences
+    reconstructed_sentences = [
+        " ".join(item[0] for item in df_unpro if item[0].strip())
+    ]
+
+    # Initialize a set to store the indices of words that should be highlighted
+    highlight_indices = set()
+
+    for sentence in important_sentences:
+        # Find the match index for each important sentence
+        match_index = next(
+            (i for i, s in enumerate(reconstructed_sentences) if sentence in s), None
+        )
+        if match_index is not None:
+            # If a match is found, get the start index of the matching sentence in the unprocessedText
+            start_index = reconstructed_sentences[0].find(sentence)
+            words_to_highlight = sentence.split()
+            current_index = 0
+            # Iterate through each word in unprocessedText
+            for i, item in enumerate(df_unpro):
+                if item[0] == words_to_highlight[current_index]:
+                    highlight_indices.add(i)
+                    current_index += 1
+                    if current_index == len(words_to_highlight):
+                        break
+
+    for i in highlight_indices:
+        df_unpro[i][1] = "highlight"
 
     dictData = {}
     dictData["arrStart"] = df["arrStart"][0]
