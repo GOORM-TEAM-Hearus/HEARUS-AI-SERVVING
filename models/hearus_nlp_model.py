@@ -1,11 +1,11 @@
 import torch
 from torch import nn
 from transformers import BertModel, BertTokenizer
-import json
 import nltk
 import pandas as pd
 from konlpy.tag import Okt
 import networkx as nx
+import json
 
 nltk.download("punkt")
 
@@ -130,9 +130,10 @@ stopwords = [
 ]
 
 
-# JSON 데이터 처리 함수
-def process_json_data(json_data):
-    df = pd.DataFrame(json_data)
+# JSON 파일 처리
+def process_json_data(file_path):
+    # JSON 파일을 데이터프레임으로 불러오기
+    df = pd.DataFrame(file_path)
 
     # 중요한 문장과 단어 추출
     important_sentences = []
@@ -157,50 +158,28 @@ def process_json_data(json_data):
 
 
 import pandas as pd
-import numpy as np
-from ast import literal_eval
+import json
 
 
-class Example:
-    def __init__(self, df_original, important_sentence, important_words):
-        self.df_original = df_original
-        self.important_sentence = self.tokenize_and_eval(important_sentence)
-        self.important_words = self.tokenize_and_eval(important_words)
+def process_data_to_json(df, important_words, important_sentences):
+    # df_unpro가 words에 속한다면 'comment', sentence에 속한다면 'highlight'로 변경
+    df_unpro = df["unProcessedText"].tolist()
+    for l in df_unpro:
+        if l[0] in important_words:
+            l[1] = "comment"
+        elif l[0] in important_sentences:
+            l[1] = "highlight"
 
-    def tokenize_and_eval(self, text):
-        if isinstance(text, str):
-            # 문자열을 공백을 기준으로 분할하고 리스트로 반환
-            return text.split()
-        else:
-            # 이미 리스트 형태인 경우 그대로 반환
-            return text
+    dictData = {}
+    dictData["arrStart"] = df["arrStart"][0]
+    dictData["arrEnd"] = df["arrEnd"][0]
+    dictData["unprocessedText"] = df_unpro
+    dictData["sumText"] = df["sumText"][0]
 
-    def update_unProcessedText(self):
-        l = []
-        for text_list in self.df_original["unProcessedText"]:
-            if text_list[0] in self.important_sentence[0]:
-                l.append("highlight")
-            elif text_list[0] in set(self.important_words):
-                l.append("comment")
-            else:
-                l.append("none")
-        for ind, unprocessedtext in enumerate(self.df_original["unProcessedText"]):
-            unprocessedtext[1] = l[ind]
-
-    def clear_other_rows(self):
-        for col in self.df_original.columns:
-            if col != "unProcessedText":
-                self.df_original.loc[1:, col] = np.nan
+    return dictData
 
 
-# 추가적인 데이터 처리 함수
-def additional_data_processing(processed_data):
-    # Example 클래스를 사용하여 추가 처리
-    example_instance = Example(
-        processed_data,
-        processed_data["important_sentence"],
-        processed_data["important_words"],
-    )
-    example_instance.update_unProcessedText()
-    example_instance.clear_other_rows()
-    return example_instance.df_original
+def save_json(data, file_path):
+    # 데이터를 JSON 파일로 저장
+    with open(file_path, "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent="	")

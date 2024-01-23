@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from models.hugging_skt_kogpt2 import add_comment
-from models.hearus_nlp_model import process_json_data, additional_data_processing
+from models.hearus_nlp_model import process_json_data, process_data_to_json
+import pandas as pd
 import json
 
 import whisper
@@ -48,20 +49,22 @@ def process():
         return jsonify({"error": "Missing JSON in request"}), 400
 
     try:
-        json_data = request.get_json()
+        origin_data = request.get_json()
 
-        processed_data = process_json_data(json_data)
+        dataFrame = process_json_data(origin_data)
+        nlpResultDictData = process_data_to_json(
+            dataFrame,
+            dataFrame["important_words"][0],
+            dataFrame["important_sentence"][0],
+        )
+        app.logger.inf("DictData : " + nlpResultDictData)
+        # nlpResultJsonData = json.dumps(nlpResultDictData)
 
-        # 추가 처리 (필요한 경우)
-        processed_text = additional_data_processing(processed_data)
-
-        # 결과 확인 (예시)
-        print(processed_text)
+        # app.logger.inf(nlpResultJsonData)
 
         # GPT API 호출, 서버로 반환
-        # processed_text = add_comment(app, processed_text)
-        # return jsonify(processed_text)
-        return jsonify(json_data)
+        # processed_data = add_comment(app, processed_data)
+        # return jsonify(processed_data)
     except json.JSONDecodeError as e:
         return jsonify({"error": "Invalid JSON"}), 400
 
