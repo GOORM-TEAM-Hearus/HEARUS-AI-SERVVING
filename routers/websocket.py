@@ -6,40 +6,23 @@ import numpy as np
 import torch
 import whisper
 
+import asyncio
 from datetime import datetime, timedelta
 from queue import Queue
 from time import sleep
+import threading
 
 router = APIRouter()
 
 # Thread safe Queue for passing data from the threaded recording callback.
 data_queue = Queue()
 
-@router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    print("[WebSocket] Configuring BE Client WebSocket")
-    await websocket.accept()
-
-    # Load Model
-    model = "medium"
-    whisper_model = whisper.load_model(model)
-    print("[Whisper] Model Loaded Successfully")
-
-    # Accept WebSocket
-    data = await websocket.receive_text()
-    print("[WebSocket] BE Client [" + data + "] Accepted")
-
-    # STT Logic
-    #speechToText(whisper_model, websocket)
-    print("[Whisper] STT Logic Called")
-
-    # Receive AudioBlob
-    while True:
-        audioBlob = await websocket.receive_bytes()
-        data_queue.put(audioBlob)
-        print("Received Audio Blob")
+# EventObject for Stopping Thread
+stop_event = threading.Event()
 
 def speechToText(whisper_model, websocket):
+    print("[Whisper] STT Thread Executed")
+
     # The last time a recording was retrieved from the queue.
     phrase_time = None
 
@@ -47,8 +30,7 @@ def speechToText(whisper_model, websocket):
     phrase_timeout = 3
     transcription = ['']
 
-    while True:
-        print("[Whisper] Tranfering Audio Data")
+    while not stop_event.is_set():
         sleep(0.25)
         try:
             now = datetime.utcnow()
@@ -74,6 +56,7 @@ def speechToText(whisper_model, websocket):
                 # Read the transcription.
                 result = whisper_model.transcribe(audio_np, fp16=torch.cuda.is_available(), language="ko")
                 text = result['text'].strip()
+                print("Text " + text)
 
                 # If we detected a pause between recordings, add a new item to our transcription.
                 # Otherwise edit the existing one.
@@ -83,6 +66,39 @@ def speechToText(whisper_model, websocket):
                         print(line)
                 else: 
                     transcription[-1] = text
-        except:
+        except Exception as e:
+            print(f"Error processing audio data: {e}")
             break
+    
 
+@router.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    print("[WebSocket] Configuring BE Client WebSocket")
+    await websocket.accept()
+
+    # Load Model
+    model = "medium"
+    whisper_model = whisper.load_model(model)
+    print("[Whisper] Model Loaded Successfully")
+
+    # Accept WebSocket
+    data = await websocket.receive_text()
+    print("[WebSocket] BE Client [" + data + "] Accepted")
+
+    # Execute STT Thread until WebSocket Disconnected
+    stt_thread = threading.Thread(target=speechToText, args=(whisper_model, stop_event))
+    stt_thread.start()
+
+    # Receive AudioBlob
+    try:
+        while True:
+            audioBlob = await websocket.receive_bytes()
+            data_queue.put(audioBlob)
+            print("Received Audio Blob " + str(data_queue.qsize()))
+    except Exception as e:
+        print(f"[WebSocket] WebSocket error: {e}")
+    finally:
+        print("[WebSocket] Connection Closed")
+        stop_event.set()
+        stt_thread.join()
+        print("[Whisper] STT Thread Destroyed")
