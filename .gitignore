@@ -4,6 +4,7 @@ deepspeech
 #env
 .env
 env
+venvs
 
 # pycache
 __pycache__
