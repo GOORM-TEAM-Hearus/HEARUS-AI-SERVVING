@@ -17,18 +17,14 @@ router = APIRouter()
 # Thread safe Queue for passing data from the threaded recording callback.
 data_queue = Queue()
 
+# Thread safe Queue for passing result from STT Thread
+result_queue = Queue()
+
 # EventObject for Stopping Thread
 stop_event = threading.Event()
 
-def speechToText(whisper_model, websocket):
+def speechToText(whisper_model, stop_event):
     print("[Whisper] STT Thread Executed")
-
-    # The last time a recording was retrieved from the queue.
-    phrase_time = None
-
-     # Set Timeout, Transition List
-    phrase_timeout = 3
-    transcription = ['']
 
     while not stop_event.is_set():
         sleep(0.25)
@@ -36,14 +32,6 @@ def speechToText(whisper_model, websocket):
             now = datetime.utcnow()
             # Pull raw recorded audio from the queue.
             if not data_queue.empty():
-                phrase_complete = False
-                # If enough time has passed between recordings, consider the phrase complete.
-                # Clear the current working audio buffer to start over with the new data.
-                if phrase_time and now - phrase_time > timedelta(seconds=phrase_timeout):
-                    phrase_complete = True
-                # This is the last time we received new audio data from the queue.
-                phrase_time = now
-                
                 # Combine audio data from queue
                 audio_data = b''.join(data_queue.queue)
                 data_queue.queue.clear()
@@ -55,21 +43,17 @@ def speechToText(whisper_model, websocket):
 
                 # Read the transcription.
                 result = whisper_model.transcribe(audio_np, fp16=torch.cuda.is_available(), language="ko")
-                text = result['text'].strip()
-                print("Text " + text)
+                transcrition_result = result['text'].strip()
+                print("[Whisper] Transition Result '" + transcrition_result + "'")
 
-                # If we detected a pause between recordings, add a new item to our transcription.
-                # Otherwise edit the existing one.
-                if phrase_complete:
-                    transcription.append(text)
-                    for line in transcription:
-                        print(line)
-                else: 
-                    transcription[-1] = text
+                if transcrition_result != '':
+                    result_queue.put(transcrition_result)
+
         except Exception as e:
-            print(f"Error processing audio data: {e}")
+            print(f"[Whisper] Error processing audio data: {e}")
             break
     
+    print("[Whisper] STT Thread Destroyed")
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -94,11 +78,28 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             audioBlob = await websocket.receive_bytes()
             data_queue.put(audioBlob)
-            print("Received Audio Blob " + str(data_queue.qsize()))
+
+            while not result_queue.empty():
+                print('[WebSocket] Send Result from Result_Queue')
+                result = result_queue.get()
+                await websocket.send_text(result)
+                
+            # Sleep for other async functions
+            await asyncio.sleep(0)
+
     except Exception as e:
         print(f"[WebSocket] WebSocket error: {e}")
     finally:
-        print("[WebSocket] Connection Closed")
         stop_event.set()
         stt_thread.join()
-        print("[Whisper] STT Thread Destroyed")
+
+        # clear stop_event for next Socket Connection
+        stop_event.clear()
+
+        while not data_queue.empty():
+                data_queue.get()
+
+        while not result_queue.empty():
+                result_queue.get()
+
+        print("[WebSocket] Connection Closed")
