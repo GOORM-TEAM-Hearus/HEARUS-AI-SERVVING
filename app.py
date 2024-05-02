@@ -58,6 +58,7 @@ def transcribe():
 
 @app.route("/process", methods=["POST"])
 def process():
+    print("\n\n/process")
     if not request.is_json:
         return jsonify({"error": "Missing JSON in request"}), 400
 
