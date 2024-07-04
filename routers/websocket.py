@@ -34,7 +34,15 @@ def speechToText(whisper_model, stop_event):
             # Pull raw recorded audio from the queue.
             if not data_queue.empty():
                 # Combine audio data from queue
-                audio_data = b"".join(data_queue.queue)
+                # Make total size of audio_data multiple of 2
+                total_size = sum(len(chunk) for chunk in data_queue.queue)
+                if total_size % 2 != 0:
+                    padding_size = 2 - (total_size % 2)
+                    # Add padding bytes
+                    audio_data = b"".join(data_queue.queue) + b"\0" * padding_size
+                else:
+                    audio_data = b"".join(data_queue.queue)
+
                 data_queue.queue.clear()
 
                 # Convert in-ram buffer to something the model can use directly without needing a temp file.
@@ -97,6 +105,8 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         print(f"[WebSocket] WebSocket error: {e}")
     finally:
+        websocket.close()
+
         stop_event.set()
         stt_thread.join()
 
