@@ -1,3 +1,4 @@
+import torch
 from fastapi import FastAPI
 from routers import websocket
 from starlette.responses import FileResponse

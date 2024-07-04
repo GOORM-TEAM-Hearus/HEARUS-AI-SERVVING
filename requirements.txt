@@ -16,6 +16,15 @@ anthropic
 
 # LangChain
 langchain
+langchain_huggingface
 langchain_community
+chroma
 chromadb
 sentence-transformers
+
+# torch CUDA 12.1
+# pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+--index-url https://download.pytorch.org/whl/cu121
+torch
+torchvision
+torchaudio
