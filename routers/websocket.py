@@ -23,6 +23,7 @@ result_queue = Queue()
 # EventObject for Stopping Thread
 stop_event = threading.Event()
 
+
 def speechToText(whisper_model, stop_event):
     print("[Whisper] STT Thread Executed")
 
@@ -33,27 +34,33 @@ def speechToText(whisper_model, stop_event):
             # Pull raw recorded audio from the queue.
             if not data_queue.empty():
                 # Combine audio data from queue
-                audio_data = b''.join(data_queue.queue)
+                audio_data = b"".join(data_queue.queue)
                 data_queue.queue.clear()
-                
+
                 # Convert in-ram buffer to something the model can use directly without needing a temp file.
                 # Convert data from 16 bit wide integers to floating point with a width of 32 bits.
                 # Clamp the audio stream frequency to a PCM wavelength compatible default of 32768hz max.
-                audio_np = np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32768.0
+                audio_np = (
+                    np.frombuffer(audio_data, dtype=np.int16).astype(np.float32)
+                    / 32768.0
+                )
 
                 # Read the transcription.
-                result = whisper_model.transcribe(audio_np, fp16=torch.cuda.is_available(), language="ko")
-                transcrition_result = result['text'].strip()
+                result = whisper_model.transcribe(
+                    audio_np, fp16=torch.cuda.is_available(), language="ko"
+                )
+                transcrition_result = result["text"].strip()
                 print("[Whisper] Transition Result '" + transcrition_result + "'")
 
-                if transcrition_result != '':
+                if transcrition_result != "":
                     result_queue.put(transcrition_result)
 
         except Exception as e:
             print(f"[Whisper] Error processing audio data: {e}")
             break
-    
+
     print("[Whisper] STT Thread Destroyed")
+
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -80,10 +87,10 @@ async def websocket_endpoint(websocket: WebSocket):
             data_queue.put(audioBlob)
 
             while not result_queue.empty():
-                print('[WebSocket] Send Result from Result_Queue')
+                print("[WebSocket] Send Result from Result_Queue")
                 result = result_queue.get()
                 await websocket.send_text(result)
-                
+
             # Sleep for other async functions
             await asyncio.sleep(0)
 
@@ -97,9 +104,9 @@ async def websocket_endpoint(websocket: WebSocket):
         stop_event.clear()
 
         while not data_queue.empty():
-                data_queue.get()
+            data_queue.get()
 
         while not result_queue.empty():
-                result_queue.get()
+            result_queue.get()
 
         print("[WebSocket] Connection Closed")
