@@ -32,7 +32,7 @@ llm = ChatOllama(model=model_id)
 print("[langchain]-[" + model_id + "]", llm.invoke("Hello World!"))
 print("[langchain] Imported LLM Model :", model_id)
 
-def process_speech_to_text(connection_uuid, converted_text):
+def speech_to_text_modification(connection_uuid, converted_text):
     # 이전 음성 인식 결과 검색
     docs = vectordb.similarity_search(converted_text, k=3)
     context = " ".join([doc.page_content for doc in docs])
@@ -85,18 +85,3 @@ def process_speech_to_text(connection_uuid, converted_text):
     )
 
     return corrected_text
-
-
-def test():
-    print("HF LLM Test")
-    # 예시 사용
-    connection_uuid = "example_connection_uuid"
-
-    # 첫 번째 음성 인식 결과 처리
-    # converted_text_1 = "이것은 시장 경제에 대한 설명입니다."
-    # process_speech_to_text(connection_uuid, converted_text_1)
-
-    # 두 번째 음성 인식 결과 처리
-    converted_text_2 = "시장 경제는 가격 아아아아아아아아아 기구를 통해 자원을 배분하는 경제 체제입니다."
-
-    return process_speech_to_text(connection_uuid, converted_text_2)

@@ -1,5 +1,5 @@
 import torch
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from routers import websocket
 from starlette.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -27,6 +27,7 @@ def read_root():
     return FileResponse("./templates/index.html")
 
 
-@app.get("/test")
-def read_root():
-    return langchain.test()
+@app.get("/sttModification")
+def sttModification(text: str = Query(..., description="The text to be modified")):
+    print("[main]-[sttModification] API Call :", text)
+    return langchain.speech_to_text_modification("example_connection_uuid", text)
