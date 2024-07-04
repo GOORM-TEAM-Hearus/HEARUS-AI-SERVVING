@@ -8,3 +8,6 @@ venvs
 
 # pycache
 __pycache__
+
+# chroma
+db

@@ -1,6 +1,7 @@
 # FastAPI
 fastapi
 uvicorn[standard]
+python-dotenv
 
 # Whisper Model Requirement
 argparse
@@ -9,3 +10,12 @@ torchvision
 torchaudio
 numpy
 git+https://github.com/openai/whisper.git
+
+# Antrhopic Claude
+anthropic
+
+# LangChain
+langchain
+langchain_community
+chromadb
+sentence-transformers
