@@ -12,6 +12,8 @@ from queue import Queue
 from time import sleep
 import threading
 
+from . import langchain
+
 router = APIRouter()
 
 # Thread safe Queue for passing data from the threaded recording callback.
@@ -25,7 +27,7 @@ stop_event = threading.Event()
 
 
 def speechToText(whisper_model, stop_event):
-    print("[Whisper] STT Thread Executed")
+    print("[STTThread] STT Thread Executed")
 
     while not stop_event.is_set():
         sleep(0.25)
@@ -58,16 +60,36 @@ def speechToText(whisper_model, stop_event):
                     audio_np, fp16=torch.cuda.is_available(), language="ko"
                 )
                 transcrition_result = result["text"].strip()
-                print("[Whisper] Transition Result '" + transcrition_result + "'")
+                print("[STTThread] Transition Result '" + transcrition_result + "'")
 
                 if transcrition_result != "":
                     result_queue.put(transcrition_result)
 
         except Exception as e:
-            print(f"[Whisper] Error processing audio data: {e}")
+            print(f"[STTThread] Error processing audio data: {e}")
             break
 
-    print("[Whisper] STT Thread Destroyed")
+    print("[STTThread] STT Thread Destroyed")
+
+# TODO : LLM Thread 최적화, 구조 재설계
+def llm_modification(websocket, connection_uuid):
+    print("[LLMThread] LLM Thread Initiated")
+    while not stop_event.is_set():
+        sleep(0.25)
+        try:
+            if not result_queue.empty():
+                transcrition_result = result_queue.get()
+                print("[LLMThread] ", transcrition_result)
+                llm_result = langchain.speech_to_text_modification(connection_uuid, transcrition_result)
+                if llm_result:
+                    websocket.send_text(llm_result)
+                else:
+                    websocket.send_text(transcrition_result)
+        except Exception as e:
+            print(f"[LLMThread] Error llm_modification: {e}")
+            break
+    
+    print("[LLMThread] LLM Thread Destroyed")
 
 
 @router.websocket("/ws")
@@ -81,12 +103,15 @@ async def websocket_endpoint(websocket: WebSocket):
     print("[Whisper] Model Loaded Successfully")
 
     # Accept WebSocket
-    data = await websocket.receive_text()
-    print("[WebSocket] BE Client [" + data + "] Accepted")
+    connection_uuid = await websocket.receive_text()
+    print("[WebSocket] Connection [" + connection_uuid + "] Accepted")
 
     # Execute STT Thread until WebSocket Disconnected
     stt_thread = threading.Thread(target=speechToText, args=(whisper_model, stop_event))
     stt_thread.start()
+
+    llm_thread = threading.Thread(target=llm_modification, args=(websocket, connection_uuid))
+    llm_thread.start()
 
     # Receive AudioBlob
     try:
@@ -94,21 +119,17 @@ async def websocket_endpoint(websocket: WebSocket):
             audioBlob = await websocket.receive_bytes()
             data_queue.put(audioBlob)
 
-            while not result_queue.empty():
-                print("[WebSocket] Send Result from Result_Queue")
-                result = result_queue.get()
-                await websocket.send_text(result)
-
             # Sleep for other async functions
             await asyncio.sleep(0)
 
     except Exception as e:
         print(f"[WebSocket] WebSocket error: {e}")
     finally:
-        websocket.close()
+        await websocket.close()
 
         stop_event.set()
         stt_thread.join()
+        llm_thread.join()
 
         # clear stop_event for next Socket Connection
         stop_event.clear()
@@ -118,5 +139,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
         while not result_queue.empty():
             result_queue.get()
+        
+        langchain.delete_data_by_uuid(connection_uuid)
 
         print("[WebSocket] Connection Closed")

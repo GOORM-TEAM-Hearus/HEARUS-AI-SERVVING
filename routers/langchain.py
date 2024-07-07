@@ -23,23 +23,24 @@ embeddings = HuggingFaceEmbeddings()
 vectordb = Chroma(embedding_function=embeddings, persist_directory="./db")
 
 # Model Import
-print("[langchain] Torch CUDA Available : ", torch.cuda.is_available())
+print("[LangChain] Torch CUDA Available : ", torch.cuda.is_available())
 
 device = 0 if torch.cuda.is_available() else -1
 if device==0: torch.cuda.empty_cache()
 
 model_id = "llama3"
 
-print("[langchain] Importing LLM Model :", model_id)
+print("[LangChain] Importing LLM Model :", model_id)
 llm = ChatOllama(model=model_id)
-print("[langchain]-[" + model_id + "]", llm.invoke("Hello World!"))
-print("[langchain] Imported LLM Model :", model_id)
+print("[LangChain]-[" + model_id + "]", llm.invoke("Hello World!"))
+print("[LangChain] Imported LLM Model :", model_id)
 
 def speech_to_text_modification(connection_uuid, converted_text):
     # 이전 음성 인식 결과 검색
     # 마지막 3개의 음성만을 가져온다
     docs = vectordb.max_marginal_relevance_search(converted_text, k=3)
     context = " ".join([doc.page_content for doc in reversed(docs)])
+    print("[LangChain] Original Converted Text : ", converted_text)
 
     textData = f"""
     이전 음성 인식 결과:
@@ -89,9 +90,9 @@ def speech_to_text_modification(connection_uuid, converted_text):
 
     result_value = json_result.get('result')
     if result_value:
-        print("[langchain]-[" + model_id + "] Result value:", result_value)
+        print("[LangChain]-[" + model_id + "] Result value:", result_value)
     else:
-        print("[langchain]-[" + model_id + "] No 'result' key found in the JSON")
+        print("[LangChain]-[" + model_id + "] No 'result' key found in the JSON")
         return None
 
     # Chroma DB에 데이터 저장
@@ -103,9 +104,20 @@ def speech_to_text_modification(connection_uuid, converted_text):
     return result_value
 
 def delete_data_by_uuid(connection_uuid):
-   # connection_uuid에 해당하는 데이터 삭제
-   vectordb.delete(ids=vectordb.get_document_ids_by_metadata_value(key="connection_uuid", value=connection_uuid))
-   print(f"[langchain] Data with connection_uuid '{connection_uuid}' has been deleted from ChromaDB.")
+    # connection_uuid에 해당하는 데이터 삭제
+    documents = vectordb.get(metadata={"connection_uuid": connection_uuid})
+    
+    # 문서에서 ID 추출
+    document_ids = [doc.id for doc in documents]
+    
+    # 문서 ID에 해당하는 데이터 삭제
+    if document_ids:
+        vectordb.delete(ids=document_ids)
+        vectordb.persist()
+        print(f"[LangChain] Data with connection_uuid '{connection_uuid}' has been deleted from ChromaDB.")
+    else:
+        print(f"[LangChain] No data found with connection_uuid '{connection_uuid}' in ChromaDB.")
+
 
 def parse_JSON(llm_response):
     json_pattern = re.compile(r'{[^{}]*?}')
@@ -120,8 +132,8 @@ def parse_JSON(llm_response):
             json_data = json.loads(json_str)
             return json_data
         except json.JSONDecodeError:
-            print("Invalid JSON format")
+            print("[LangChain]-[parse_JSON] Invalid JSON format")
             return None
     else:
-        print("No JSON found in the LLM response")
+        print("[LangChain]-[parse_JSON] No JSON found in the LLM response")
         return None
