@@ -11,6 +11,7 @@ from langchain.prompts import PromptTemplate
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_huggingface import HuggingFaceEmbeddings
+from langchain.docstore.document import Document
 from langchain_community.vectorstores import Chroma
 
 # .env HUGGINGFACEHUB_API_TOKEN 불러오기
@@ -36,8 +37,9 @@ print("[langchain] Imported LLM Model :", model_id)
 
 def speech_to_text_modification(connection_uuid, converted_text):
     # 이전 음성 인식 결과 검색
-    docs = vectordb.similarity_search(converted_text, k=3)
-    context = " ".join([doc.page_content for doc in docs])
+    # 마지막 3개의 음성만을 가져온다
+    docs = vectordb.max_marginal_relevance_search(converted_text, k=3)
+    context = " ".join([doc.page_content for doc in reversed(docs)])
 
     textData = f"""
     이전 음성 인식 결과:
@@ -87,19 +89,23 @@ def speech_to_text_modification(connection_uuid, converted_text):
 
     result_value = json_result.get('result')
     if result_value:
-        print("Result value:", result_value)
+        print("[langchain]-[" + model_id + "] Result value:", result_value)
     else:
-        print("No 'result' key found in the JSON")
+        print("[langchain]-[" + model_id + "] No 'result' key found in the JSON")
         return None
 
-    # 수정된 텍스트를 Chroma DB에 저장
-    vectordb.add_texts(
-        texts=[result_value],
-        metadatas=[{"connection_uuid": connection_uuid}],
+    # Chroma DB에 데이터 저장
+    vectordb.add_documents(
+        documents=[Document(page_content=result_value, metadata={"connection_uuid": connection_uuid})],
         ids=[str(uuid4())],
     )
 
     return result_value
+
+def delete_data_by_uuid(connection_uuid):
+   # connection_uuid에 해당하는 데이터 삭제
+   vectordb.delete(ids=vectordb.get_document_ids_by_metadata_value(key="connection_uuid", value=connection_uuid))
+   print(f"[langchain] Data with connection_uuid '{connection_uuid}' has been deleted from ChromaDB.")
 
 def parse_JSON(llm_response):
     json_pattern = re.compile(r'{[^{}]*?}')
