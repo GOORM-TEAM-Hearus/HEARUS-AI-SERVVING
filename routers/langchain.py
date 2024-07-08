@@ -40,7 +40,11 @@ print("[LangChain] Imported LLM Model :", model_id)
 def speech_to_text_modification(connection_uuid, converted_text):
     # 이전 음성 인식 결과 검색
     # 마지막 3개의 음성만을 가져온다
-    docs = vectordb.max_marginal_relevance_search(converted_text, k=3)
+    docs = vectordb.max_marginal_relevance_search(
+        query_texts=[converted_text],
+        k=3,
+        where={"connection_uuid": connection_uuid}  # metadata 필터링 조건 지정
+    )
     context = " ".join([doc.page_content for doc in reversed(docs)])
     print("[LangChain] Original Converted Text : ", converted_text)
 
@@ -107,15 +111,15 @@ def speech_to_text_modification(connection_uuid, converted_text):
 
 def delete_data_by_uuid(connection_uuid):
     # connection_uuid에 해당하는 데이터 삭제
-    documents = vectordb.get(metadata={"connection_uuid": connection_uuid})
-    
-    # 문서에서 ID 추출
-    document_ids = [doc.id for doc in documents]
+    documents = vectordb.get(
+        where={"connection_uuid": connection_uuid}  # metadata 필터링 조건 지정
+    )
+
+    document_ids = documents["ids"]
     
     # 문서 ID에 해당하는 데이터 삭제
     if document_ids:
         vectordb.delete(ids=document_ids)
-        vectordb.persist()
         print(f"[LangChain] Data with connection_uuid '{connection_uuid}' has been deleted from ChromaDB.")
     else:
         print(f"[LangChain] No data found with connection_uuid '{connection_uuid}' in ChromaDB.")

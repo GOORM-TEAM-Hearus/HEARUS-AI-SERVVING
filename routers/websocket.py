@@ -140,7 +140,7 @@ async def websocket_endpoint(websocket: WebSocket):
         
         langchain.delete_data_by_uuid(connection_uuid)
 
-        if not websocket.closed:
+        if websocket.client_state.name != "DISCONNECTED":
             await websocket.close()
 
         print("[WebSocket] Connection Closed")
