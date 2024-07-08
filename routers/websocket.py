@@ -125,8 +125,6 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         print(f"[WebSocket] WebSocket error: {e}")
     finally:
-        await websocket.close()
-
         stop_event.set()
         stt_thread.join()
         llm_thread.join()
@@ -141,5 +139,8 @@ async def websocket_endpoint(websocket: WebSocket):
             result_queue.get()
         
         langchain.delete_data_by_uuid(connection_uuid)
+
+        if not websocket.closed:
+            await websocket.close()
 
         print("[WebSocket] Connection Closed")

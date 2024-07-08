@@ -23,15 +23,17 @@ embeddings = HuggingFaceEmbeddings()
 vectordb = Chroma(embedding_function=embeddings, persist_directory="./db")
 
 # Model Import
-print("[LangChain] Torch CUDA Available : ", torch.cuda.is_available())
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if device.type == "cuda":
+    torch.cuda.empty_cache()
 
-device = 0 if torch.cuda.is_available() else -1
-if device==0: torch.cuda.empty_cache()
+print("[LangChain] Torch CUDA Available : ", torch.cuda.is_available())
+print("[LangChain] Current Device : ", device)
 
 model_id = "llama3"
 
 print("[LangChain] Importing LLM Model :", model_id)
-llm = ChatOllama(model=model_id)
+llm = ChatOllama(model=model_id, device=device)
 print("[LangChain]-[" + model_id + "]", llm.invoke("Hello World!"))
 print("[LangChain] Imported LLM Model :", model_id)
 
