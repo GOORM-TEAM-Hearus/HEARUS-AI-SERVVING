@@ -107,6 +107,9 @@ async def llm_thread(websocket: WebSocket, connection_uuid):
                     transcrition_result
                 ))
 
+                if not llm_result:
+                    llm_result = transcrition_result
+
                 message_data = {
                     "textId": text_id,
                     "transcritionResult": llm_result
@@ -135,14 +138,14 @@ async def process_thread(websocket: WebSocket):
 
                 llm_queue.put(message)
                 
-                message_data = {
-                    "textId": text_id,
-                    "transcritionResult": transcrition_result
-                }
+                # message_data = {
+                #     "textId": text_id,
+                #     "transcritionResult": transcrition_result
+                # }
                 
-                message_json = json.dumps(message_data, ensure_ascii=False)
+                # message_json = json.dumps(message_data, ensure_ascii=False)
 
-                await websocket.send_text(message_json)
+                # await websocket.send_text(message_json)
         except Exception as e:
             print(f"[ProcessTask] Error : {e}")
             break
@@ -153,8 +156,11 @@ async def process_thread(websocket: WebSocket):
 async def websocket_task(websocket: WebSocket):
     # Load Model
     model = "medium"
-    whisper_model = whisper.load_model(model)
-    print("[WebSocketTask]-[Whisper] Model Loaded Successfully")
+
+    # enforece GPU if CUDA is available
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    whisper_model = whisper.load_model(model, device=device)
+    print("[WebSocketTask]-[Whisper] Model Loaded Successfully with", device)
 
     # Accept WebSocket
     connection_uuid = await websocket.receive_text()

@@ -46,9 +46,9 @@ async def speech_to_text_modification(connection_uuid, converted_text):
         where={"connection_uuid": connection_uuid},  # metadata 필터링 조건 지정
     )
     context = " ".join(docs['documents'][-3:])
-    print("[LangChain] Connection UUID : ", connection_uuid)
+    print("\n[LangChain] Connection UUID : ", connection_uuid)
     print("[LangChain] Previous context : ", context)
-    print("[LangChain] Converted Text : ", converted_text)
+    print("[LangChain] Converted Text : ", converted_text, "\n")
 
     textData = f"""
     이전 음성 인식 결과:
@@ -99,7 +99,7 @@ async def speech_to_text_modification(connection_uuid, converted_text):
     if json_result:
         result_value = json_result.get('result')
         if result_value:
-            print("[LangChain]-[" + model_id + "] Result value:", result_value)
+            print("\n [LangChain]-[" + model_id + "] Result value:", result_value, "\n")
         else:
             return None
     else:
