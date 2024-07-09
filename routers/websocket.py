@@ -39,7 +39,7 @@ def speechToText(whisper_model, stop_event):
     max_audio_size = max_audio_duration * sample_rate * 2  # 최대 오디오 크기 (바이트)
 
     while not stop_event.is_set():
-        sleep(0.25)
+        sleep(3)
         try:
             now = datetime.utcnow()
             # Pull raw recorded audio from the queue.

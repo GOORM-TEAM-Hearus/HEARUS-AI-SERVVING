@@ -40,12 +40,12 @@ print("[LangChain] Imported LLM Model :", model_id)
 
 async def speech_to_text_modification(connection_uuid, converted_text):
     # 이전 음성 인식 결과 검색
-    # 마지막 3개의 음성만을 가져온다
+    # 마지막 1개의 음성만을 가져온다
     docs = await asyncio.to_thread(
         vectordb.get,
         where={"connection_uuid": connection_uuid},  # metadata 필터링 조건 지정
     )
-    context = " ".join(docs['documents'][-3:])
+    context = " ".join(docs['documents'][-1:])
     print("\n[LangChain] Connection UUID : ", connection_uuid)
     print("[LangChain] Previous context : ", context)
     print("[LangChain] Converted Text : ", converted_text, "\n")
@@ -66,12 +66,13 @@ async def speech_to_text_modification(connection_uuid, converted_text):
         실시간 음성인식 결과를 더욱 매끄럽게 하기 위해 위 문장에 기반하여 아래 조건의 작업을 수행해주세요.
         1. 이전 결과를 고려하여 현재 텍스트를 문법적으로 올바르게 수정해주세요.
         2. 현재 음성 인식 결과에서 잡음이나 인식 오류를 제거해주세요.
-        3. 이전 음성 인식 결과의 문맥을 고려하여 자연스럽게 연결되도록 현재 음성 인식 결과를 수정해주세요.
+        3. 이전 결과와 정말 아무 관련이 없는 내용이 아닌 경우에는 내용을 수정하지 말아주세요
         4. 답변은 한국어로 번역해주세요.
         4-1. 단, 음성인식 결과에 타 언어로 된 전문용어가 들어가 있다면 한국어로 변역하지 말아주세요.
         5. 추가적인 설명 없이 수정된 현재 음성 인식 결과만 출력해주세요.
         6. 문장에 부가 설명을 붙이지 말고 오로지 제공된 현재 음성인식 결과에서만 수정해주세요.
-
+        7. 이전 결과의 내용을 반복하는 형태로 내용을 수정하지 말아주세요
+                                              
         개선된 문장만을 "result" key의 value에 담아 JSON 형태로 제공해주세요
         결과 외에는 그 어떤 텍스트도 답변하지 말아주세요
     """)
