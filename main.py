@@ -1,4 +1,5 @@
 import torch
+import asyncio
 from fastapi import FastAPI, Query
 from routers import websocket
 from starlette.responses import FileResponse
@@ -28,6 +29,12 @@ def read_root():
 
 
 @app.get("/sttModification")
-def sttModification(text: str = Query(..., description="The text to be modified")):
+async def sttModification(text: str = Query(..., description="The text to be modified")):
     print("[main]-[sttModification] API Call :", text)
-    return langchain.speech_to_text_modification("example_connection_uuid", text)
+
+    llm_result = await asyncio.create_task(langchain.speech_to_text_modification(
+        "connection_uuid", 
+        text
+    ))
+
+    return llm_result

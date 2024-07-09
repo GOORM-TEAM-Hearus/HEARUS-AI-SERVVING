@@ -2,6 +2,7 @@ import os
 import re
 import torch
 import json
+import asyncio
 from uuid import uuid4
 from dotenv import load_dotenv
 # from langchain_community.llms import HuggingFaceHub
@@ -37,16 +38,17 @@ llm = ChatOllama(model=model_id, device=device)
 print("[LangChain]-[" + model_id + "]", llm.invoke("Hello World!"))
 print("[LangChain] Imported LLM Model :", model_id)
 
-def speech_to_text_modification(connection_uuid, converted_text):
+async def speech_to_text_modification(connection_uuid, converted_text):
     # 이전 음성 인식 결과 검색
     # 마지막 3개의 음성만을 가져온다
-    docs = vectordb.max_marginal_relevance_search(
-        query_texts=[converted_text],
-        k=3,
-        where={"connection_uuid": connection_uuid}  # metadata 필터링 조건 지정
+    docs = await asyncio.to_thread(
+        vectordb.get,
+        where={"connection_uuid": connection_uuid},  # metadata 필터링 조건 지정
     )
-    context = " ".join([doc.page_content for doc in reversed(docs)])
-    print("[LangChain] Original Converted Text : ", converted_text)
+    context = " ".join(docs['documents'][-3:])
+    print("[LangChain] Connection UUID : ", connection_uuid)
+    print("[LangChain] Previous context : ", context)
+    print("[LangChain] Converted Text : ", converted_text)
 
     textData = f"""
     이전 음성 인식 결과:
@@ -91,38 +93,27 @@ def speech_to_text_modification(connection_uuid, converted_text):
     #     | StrOutputParser()
     # )
 
-    corrected_text = chain1.invoke({"textData" : textData})
+    corrected_text = await asyncio.to_thread(chain1.invoke, {"textData": textData})
     json_result = parse_JSON(corrected_text)
 
-    result_value = json_result.get('result')
-    if result_value:
-        print("[LangChain]-[" + model_id + "] Result value:", result_value)
+    if json_result:
+        result_value = json_result.get('result')
+        if result_value:
+            print("[LangChain]-[" + model_id + "] Result value:", result_value)
+        else:
+            return None
     else:
         print("[LangChain]-[" + model_id + "] No 'result' key found in the JSON")
         return None
 
     # Chroma DB에 데이터 저장
-    vectordb.add_documents(
+    await asyncio.to_thread(
+        vectordb.add_documents,
         documents=[Document(page_content=result_value, metadata={"connection_uuid": connection_uuid})],
         ids=[str(uuid4())],
     )
 
     return result_value
-
-def delete_data_by_uuid(connection_uuid):
-    # connection_uuid에 해당하는 데이터 삭제
-    documents = vectordb.get(
-        where={"connection_uuid": connection_uuid}  # metadata 필터링 조건 지정
-    )
-
-    document_ids = documents["ids"]
-    
-    # 문서 ID에 해당하는 데이터 삭제
-    if document_ids:
-        vectordb.delete(ids=document_ids)
-        print(f"[LangChain] Data with connection_uuid '{connection_uuid}' has been deleted from ChromaDB.")
-    else:
-        print(f"[LangChain] No data found with connection_uuid '{connection_uuid}' in ChromaDB.")
 
 
 def parse_JSON(llm_response):
@@ -143,3 +134,19 @@ def parse_JSON(llm_response):
     else:
         print("[LangChain]-[parse_JSON] No JSON found in the LLM response")
         return None
+    
+
+def delete_data_by_uuid(connection_uuid):
+    # connection_uuid에 해당하는 데이터 삭제
+    documents = vectordb.get(
+        where={"connection_uuid": connection_uuid}  # metadata 필터링 조건 지정
+    )
+
+    document_ids = documents["ids"]
+    
+    # 문서 ID에 해당하는 데이터 삭제
+    if document_ids:
+        vectordb.delete(ids=document_ids)
+        print(f"[LangChain] Data with connection_uuid '{connection_uuid}' has been deleted from ChromaDB.")
+    else:
+        print(f"[LangChain] No data found with connection_uuid '{connection_uuid}' in ChromaDB.")
