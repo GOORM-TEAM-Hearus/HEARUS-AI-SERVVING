@@ -1,6 +1,6 @@
 import torch
 import asyncio
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Request
 from routers import websocket
 from starlette.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -38,3 +38,22 @@ async def sttModification(text: str = Query(..., description="The text to be mod
     ))
 
     return llm_result
+
+
+@app.post("/generateProblems")
+async def generate_problems(request: Request):
+    data = await request.json()
+    
+    script = data["script"]
+    subject = data["subject"]
+    problem_num = data["problem_num"]
+    problem_types = data["problem_types"]
+
+    generate_result = await asyncio.create_task(langchain.generate_problems(
+        script,
+        subject,
+        problem_num,
+        problem_types
+    ))
+    
+    return generate_result

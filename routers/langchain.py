@@ -38,6 +38,26 @@ llm = ChatOllama(model=model_id, device=device)
 print("[LangChain]-[" + model_id + "]", llm.invoke("Hello World!"))
 print("[LangChain] Imported LLM Model :", model_id)
 
+def parse_JSON(llm_response):
+    json_pattern = re.compile(r'{[^{}]*?}')
+
+    # LLM 응답에서 JSON 값 찾기
+    json_match = json_pattern.findall(llm_response)
+    
+    if json_match:
+        json_str = json_match[-1]
+        
+        try:
+            json_data = json.loads(json_str)
+            return json_data
+        except json.JSONDecodeError:
+            print("[LangChain]-[parse_JSON] Invalid JSON format")
+            return None
+    else:
+        print("[LangChain]-[parse_JSON] No JSON found in the LLM response")
+        return None
+
+######## STT LangChain ########
 async def speech_to_text_modification(connection_uuid, converted_text):
     # 이전 음성 인식 결과 검색
     # 마지막 1개의 음성만을 가져온다
@@ -54,7 +74,7 @@ async def speech_to_text_modification(connection_uuid, converted_text):
     이전 음성 인식 결과:
     {context}
 
-    현재 음성 인식 결과:
+    현재 음성 인식 결과
     {converted_text}
     """
 
@@ -63,7 +83,7 @@ async def speech_to_text_modification(connection_uuid, converted_text):
     prompt = ChatPromptTemplate.from_template("""
         {textData}
                                               
-        실시간 음성인식 결과를 더욱 매끄럽게 하기 위해 위 문장에 기반하여 아래 조건의 작업을 수행해주세요.
+        아래 조건의 작업을 수행해주세요.
         1. 이전 결과를 고려하여 현재 텍스트를 문법적으로 올바르게 수정해주세요.
         2. 현재 음성 인식 결과에서 잡음이나 인식 오류를 제거해주세요.
         3. 이전 결과와 정말 아무 관련이 없는 내용이 아닌 경우에는 내용을 수정하지 말아주세요
@@ -117,26 +137,6 @@ async def speech_to_text_modification(connection_uuid, converted_text):
     return result_value
 
 
-def parse_JSON(llm_response):
-    json_pattern = re.compile(r'{[^{}]*?}')
-
-    # LLM 응답에서 JSON 값 찾기
-    json_match = json_pattern.findall(llm_response)
-    
-    if json_match:
-        json_str = json_match[-1]
-        
-        try:
-            json_data = json.loads(json_str)
-            return json_data
-        except json.JSONDecodeError:
-            print("[LangChain]-[parse_JSON] Invalid JSON format")
-            return None
-    else:
-        print("[LangChain]-[parse_JSON] No JSON found in the LLM response")
-        return None
-    
-
 def delete_data_by_uuid(connection_uuid):
     # connection_uuid에 해당하는 데이터 삭제
     documents = vectordb.get(
@@ -151,3 +151,96 @@ def delete_data_by_uuid(connection_uuid):
         print(f"[LangChain] Data with connection_uuid '{connection_uuid}' has been deleted from ChromaDB.")
     else:
         print(f"[LangChain] No data found with connection_uuid '{connection_uuid}' in ChromaDB.")
+
+
+######## Problem LangChain ########
+async def generate_problems(script, subject, problem_num, problem_types):
+    print("\n[LangChain]-[generate_problems] Subject :", subject)
+    print("[LangChain]-[generate_problems] Problem_num :", problem_num ,"Problem Types : ", problem_types, "\n")
+
+    prompt_text = f"""
+        {script}
+
+        위 스크립트는 대한민국의 대학교 수준의 {subject}강의 내용인데
+        이때 위 스크립트에 기반하여 {problem_num} 개의 문제를 JSON 형식으로 아래 조건에 맞추어서 생성해주세요.
+
+        1. 문제의 Type은 아래와 같이 총 4개만 존재합니다.
+
+        MultipleChoice : 객관식, Option은 네개, 즉 사지선다형
+        ShrotAnswer : 단답형
+        BlanckQuestion : 빈칸 뚫기 문제
+        OXChoice : O X 문제
+
+        2. 주어진 스크립트에서 시험에 나올 수 있는, 중요한 부분에 대한 문제를 생성해주세요.
+        3. 추가적인 설명 없이 JSON 결과만 제공해주세요.
+        4. 문제 JSON은 아래와 같은 형태여야만 합니다.
+
+        {{
+            [
+                {{
+                    "type": "",
+                    "direction": "",
+                    "options": [
+                    "",
+                    "",
+                    "",
+                    ""
+                    ],
+                    "answer": ""
+                }},
+                {{
+                    // 다음 문제
+                }},
+                ...
+            ]
+        }}
+
+        아래는 각 JSON의 요소들에 대한 설명입니다. 아래의 설명에 완벽하게 맞추어서 생성해주세요.
+
+        type : 문제 Type 4개 중에 1개
+
+        direction : 문제 질문
+        direction : type이 BlanckQuestion인 경우에는 direction에 ___로 빈칸을 뚫어야 한다
+        direction : type이 OXChoice인 경우에는 direction이 질문 형태가 아닌 서술 형태로 참 또는 거짓일 수 있어야 한다
+
+        options: MultipleChoice인 경우에만 보기 4개
+        options: MultipleChoice이 아닌 다른 Type이면 빈 배열
+        options : OXChoice인 경우에도 빈 배열
+
+        answer : 각 문제들에 대한 정답
+        answer : MultipleChoice인 경우 options들 중 정답 번호
+        answer : ShrotAnswer의 경우 direction에 대한 정답
+        answer : BlanckQuestion인 경우 direction에 뚫린 빈칸
+        answer : OXChoice인 경우 X인 경우 answer는 0, O인 경우 answer는 1
+
+        5. 이 중에서 {problem_types}에 해당하는 종류의 문제만 생성해주세요
+        6. 각 문제의 Type에 맞는 JSON 요소들을 생성해주세요
+        7. 항상 모든 문제에 대한 direction과 answer는 꼭 생성해주세요
+        8. 문제는 모두 한국어로 생성해주세요
+    """
+
+    prompt = ChatPromptTemplate.from_template(prompt_text)
+
+    chain = (
+        prompt 
+        | llm 
+        | StrOutputParser()
+    )
+
+    problem_result = await asyncio.to_thread(chain.invoke, input=None)
+
+    print(problem_result)
+
+    json_result = parse_JSON(problem_result)
+
+    if json_result:
+        result_value = json_result.get('result')
+        if result_value:
+            print("\n [LangChain]-[" + model_id + "] Result value:", result_value, "\n")
+        else:
+            return None
+    else:
+        print("[LangChain]-[" + model_id + "] No 'result' key found in the JSON")
+        return None
+
+    return result_value
