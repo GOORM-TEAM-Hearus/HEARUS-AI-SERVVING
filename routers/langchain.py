@@ -38,15 +38,22 @@ llm = ChatOllama(model=model_id, device=device)
 print("[LangChain]-[" + model_id + "]", llm.invoke("Hello World!"))
 print("[LangChain] Imported LLM Model :", model_id)
 
-def parse_JSON(llm_response):
+def parse_JSON(llm_response, is_array=False):
     json_pattern = re.compile(r'{[^{}]*?}')
 
     # LLM 응답에서 JSON 값 찾기
     json_match = json_pattern.findall(llm_response)
     
-    if json_match:
+    if json_match and is_array:
+        json_array = []
+        for string in json_match:
+            try:
+                json_array.append(json.loads(string))
+            except json.JSONDecodeError as e:
+                print(f"Error parsing JSON: {str(e)}")
+        return json_array
+    elif json_match:
         json_str = json_match[-1]
-        
         try:
             json_data = json.loads(json_str)
             return json_data
@@ -156,9 +163,10 @@ def delete_data_by_uuid(connection_uuid):
 ######## Problem LangChain ########
 async def generate_problems(script, subject, problem_num, problem_types):
     print("\n[LangChain]-[generate_problems] Subject :", subject)
-    print("[LangChain]-[generate_problems] Problem_num :", problem_num ,"Problem Types : ", problem_types, "\n")
+    print("[LangChain]-[generate_problems] Problem_num :", problem_num)
+    print("[LangChain]-[generate_problems] Problem Types : ", problem_types, "\n")
 
-    prompt_text = f"""
+    prompt = ChatPromptTemplate.from_template("""
         {script}
 
         위 스크립트는 대한민국의 대학교 수준의 {subject}강의 내용인데
@@ -175,7 +183,6 @@ async def generate_problems(script, subject, problem_num, problem_types):
         3. 추가적인 설명 없이 JSON 결과만 제공해주세요.
         4. 문제 JSON은 아래와 같은 형태여야만 합니다.
 
-        {{
             [
                 {{
                     "type": "",
@@ -193,7 +200,6 @@ async def generate_problems(script, subject, problem_num, problem_types):
                 }},
                 ...
             ]
-        }}
 
         아래는 각 JSON의 요소들에 대한 설명입니다. 아래의 설명에 완벽하게 맞추어서 생성해주세요.
 
@@ -217,9 +223,7 @@ async def generate_problems(script, subject, problem_num, problem_types):
         6. 각 문제의 Type에 맞는 JSON 요소들을 생성해주세요
         7. 항상 모든 문제에 대한 direction과 answer는 꼭 생성해주세요
         8. 문제는 모두 한국어로 생성해주세요
-    """
-
-    prompt = ChatPromptTemplate.from_template(prompt_text)
+    """)
 
     chain = (
         prompt 
@@ -227,20 +231,17 @@ async def generate_problems(script, subject, problem_num, problem_types):
         | StrOutputParser()
     )
 
-    problem_result = await asyncio.to_thread(chain.invoke, input=None)
+    problem_result = await asyncio.to_thread(
+        chain.invoke, {
+               "script" : script,
+               "subject" : subject,
+               "problem_num" : problem_num,
+               "problem_types" : problem_types
+        })
 
-    print(problem_result)
+    json_result = parse_JSON(problem_result, True)
 
-    json_result = parse_JSON(problem_result)
-
-    if json_result:
-        result_value = json_result.get('result')
-        if result_value:
-            print("\n [LangChain]-[" + model_id + "] Result value:", result_value, "\n")
-        else:
-            return None
-    else:
-        print("[LangChain]-[" + model_id + "] No 'result' key found in the JSON")
+    if not json_result:
         return None
-
-    return result_value
+    
+    return json_result
