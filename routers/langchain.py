@@ -167,6 +167,9 @@ async def generate_problems(script, subject, problem_num, problem_types):
     print("[LangChain]-[generate_problems] Problem Types : ", problem_types, "\n")
 
     prompt = ChatPromptTemplate.from_template("""
+        당신은 대한민국 대학교 {subject} 교수입니다.
+        당신은 학생들의 학습 수준을 평가하기 위해서 시험 문제를 출제하는 중입니다.
+
         {script}
 
         위 스크립트는 대한민국의 대학교 수준의 {subject}강의 내용인데
@@ -223,6 +226,7 @@ async def generate_problems(script, subject, problem_num, problem_types):
         6. 각 문제의 Type에 맞는 JSON 요소들을 생성해주세요
         7. 항상 모든 문제에 대한 direction과 answer는 꼭 생성해주세요
         8. 문제는 모두 한국어로 생성해주세요
+        9. 이를 생성할 때 고민의 시간을 가지고 정확하게 생성해주새요
     """)
 
     chain = (

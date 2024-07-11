@@ -42,7 +42,12 @@ async def sttModification(text: str = Query(..., description="The text to be mod
 
 @app.post("/generateProblems")
 async def generate_problems(request: Request):
+    print(request)
+    print(request.body)
+
     data = await request.json()
+
+    print(data)
     
     script = data["script"]
     subject = data["subject"]
