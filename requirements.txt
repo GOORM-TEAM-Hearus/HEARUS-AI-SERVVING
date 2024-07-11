@@ -3,6 +3,7 @@ fastapi
 uvicorn[standard]
 python-dotenv
 websockets
+pydantic
 
 # Whisper Model Requirement
 argparse

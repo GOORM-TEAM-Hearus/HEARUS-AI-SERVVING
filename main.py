@@ -1,6 +1,8 @@
 import torch
+import json
 import asyncio
-from fastapi import FastAPI, Query, Request
+from pydantic import BaseModel
+from fastapi import FastAPI, Query, Request, Body
 from routers import websocket
 from starlette.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -39,20 +41,20 @@ async def sttModification(text: str = Query(..., description="The text to be mod
 
     return llm_result
 
+class problemReq(BaseModel):
+    script: str
+    subject : str
+    problem_num : int
+    problem_types : str
 
 @app.post("/generateProblems")
-async def generate_problems(request: Request):
-    print(request)
-    print(request.body)
-
-    data = await request.json()
-
-    print(data)
+async def generate_problems(problem_req: problemReq):
+    data = problem_req
     
-    script = data["script"]
-    subject = data["subject"]
-    problem_num = data["problem_num"]
-    problem_types = data["problem_types"]
+    script = data.script
+    subject = data.subject
+    problem_num = data.problem_num
+    problem_types = data.problem_types
 
     generate_result = await asyncio.create_task(langchain.generate_problems(
         script,
