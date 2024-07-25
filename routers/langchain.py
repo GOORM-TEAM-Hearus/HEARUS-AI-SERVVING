@@ -51,6 +51,7 @@ def parse_JSON(llm_response, is_array=False):
                 json_array.append(json.loads(string))
             except json.JSONDecodeError as e:
                 print(f"Error parsing JSON: {str(e)}")
+                print(string)
         return json_array
     elif json_match:
         json_str = json_match[-1]

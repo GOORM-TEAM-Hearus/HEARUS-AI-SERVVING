@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/src
+      - /home/ubuntu/venv:/venv
+      - /home/ubuntu/.ollama:/root/.ollama
+    environment:
+      - VIRTUAL_ENV=/venv
+      - PATH="/venv/bin:$PATH"
+      - PYTHONPATH=/venv/lib/python3.8/site-packages
+      - PYTHONUNBUFFERED=1
+    network_mode: "host"
+    command: ["/bin/bash", "/src/start_with_ollama.sh"]
