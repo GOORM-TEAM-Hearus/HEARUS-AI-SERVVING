@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM python:3.12.4
 
 WORKDIR /src
 
@@ -11,10 +11,12 @@ RUN apt-get update && apt-get install -y \
 COPY main.py /src/
 COPY routers /src/routers
 COPY templates /src/templates
+COPY images /src/images
 
 # Create a shell script to activate venv and start the application
 RUN echo '#!/bin/bash\n\
-source /venvs/bin/activate\n\
+chmod 777 .venv/bin/activate\n\
+source .venv/bin/activate\n\
 python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload\n\
 ' > /src/start_app.sh
 
