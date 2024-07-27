@@ -48,7 +48,27 @@ def parse_JSON(llm_response, is_array=False):
         json_array = []
         for string in json_match:
             try:
-                json_array.append(json.loads(string))
+                # 중괄호 균형 맞추기
+                open_braces = json_str.count('{')
+                close_braces = json_str.count('}')
+                if open_braces > close_braces:
+                    json_str += '}' * (open_braces - close_braces)
+                
+                # 콤마 추가 및 대괄호로 감싸기
+                json_str = json_str.replace('}\n{', '},{')
+                if not json_str.strip().startswith('['):
+                    json_str = '[' + json_str + ']'
+                
+                # JSON 파싱
+                parsed_json = json.loads(json_str)
+                
+                # 단일 객체인 경우 리스트에서 추출
+                if isinstance(parsed_json, list) and len(parsed_json) == 1:
+                    parsed_json = parsed_json[0]
+                
+                print(parsed_json)
+
+                json_array.append(parsed_json)
             except json.JSONDecodeError as e:
                 print(f"Error parsing JSON: {str(e)}")
                 print(string)
