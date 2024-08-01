@@ -199,7 +199,7 @@ async def generate_problems(script, subject, problem_num, problem_types):
         1. 문제의 Type은 아래와 같이 총 4개만 존재합니다.
 
         MultipleChoice : 객관식, Option은 네개, 즉 사지선다형
-        ShrotAnswer : 단답형
+        ShortAnswer : 단답형
         BlanckQuestion : 빈칸 뚫기 문제
         OXChoice : O X 문제
 
@@ -239,7 +239,7 @@ async def generate_problems(script, subject, problem_num, problem_types):
 
         answer : 각 문제들에 대한 정답
         answer : MultipleChoice인 경우 options들 중 정답 번호
-        answer : ShrotAnswer의 경우 direction에 대한 정답
+        answer : ShortAnswer의 경우 direction에 대한 정답
         answer : BlanckQuestion인 경우 direction에 뚫린 빈칸
         answer : OXChoice인 경우 X인 경우 answer는 0, O인 경우 answer는 1
 
