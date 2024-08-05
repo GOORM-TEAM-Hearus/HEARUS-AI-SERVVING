@@ -49,6 +49,8 @@ class problemReq(BaseModel):
 
 @app.post("/generateProblems")
 async def generate_problems(problem_req: problemReq):
+    print("[main]-[generate_problems] API Call")
+
     data = problem_req
     
     script = data.script

@@ -38,52 +38,46 @@ llm = ChatOllama(model=model_id, device=device)
 print("[LangChain]-[" + model_id + "]", llm.invoke("Hello World!"))
 print("[LangChain] Imported LLM Model :", model_id)
 
-def parse_JSON(llm_response, is_array=False):
-    json_pattern = re.compile(r'{[^{}]*?}')
 
-    # LLM 응답에서 JSON 값 찾기
-    json_match = json_pattern.findall(llm_response)
-    
-    if json_match and is_array:
-        json_array = []
-        for string in json_match:
-            try:
-                # 중괄호 균형 맞추기
-                open_braces = json_str.count('{')
-                close_braces = json_str.count('}')
-                if open_braces > close_braces:
-                    json_str += '}' * (open_braces - close_braces)
-                
-                # 콤마 추가 및 대괄호로 감싸기
-                json_str = json_str.replace('}\n{', '},{')
-                if not json_str.strip().startswith('['):
-                    json_str = '[' + json_str + ']'
-                
-                # JSON 파싱
-                parsed_json = json.loads(json_str)
-                
-                # 단일 객체인 경우 리스트에서 추출
-                if isinstance(parsed_json, list) and len(parsed_json) == 1:
-                    parsed_json = parsed_json[0]
-                
-                print(parsed_json)
+def parse_JSON(text, is_array=False):
+    def extract_json_objects(text):
+        json_objects = []
+        brace_count = 0
+        start_index = None
 
-                json_array.append(parsed_json)
-            except json.JSONDecodeError as e:
-                print(f"Error parsing JSON: {str(e)}")
-                print(string)
-        return json_array
-    elif json_match:
-        json_str = json_match[-1]
+        for i, char in enumerate(text):
+            if char == '{':
+                if brace_count == 0:
+                    start_index = i
+                brace_count += 1
+            elif char == '}':
+                brace_count -= 1
+                if brace_count == 0 and start_index is not None:
+                    json_objects.append(text[start_index:i+1])
+                    start_index = None
+
+        return json_objects
+
+    result = []
+    json_objects = extract_json_objects(text)
+
+    for json_str in json_objects:
         try:
-            json_data = json.loads(json_str)
-            return json_data
-        except json.JSONDecodeError:
-            print("[LangChain]-[parse_JSON] Invalid JSON format")
-            return None
-    else:
-        print("[LangChain]-[parse_JSON] No JSON found in the LLM response")
+            # 줄바꿈과 공백 처리
+            json_str = re.sub(r'\s+', ' ', json_str)
+            parsed_json = json.loads(json_str)
+            print(parsed_json)
+            result.append(parsed_json)
+        except json.JSONDecodeError as e:
+            print(f"[LangChain]-[parse_JSON] Error parsing JSON: {str(e)}")
+            print(f"[LangChain]-[parse_JSON] Problematic JSON string: {json_str}")
+
+    if not result:
+        print("[LangChain]-[parse_JSON] No valid JSON data found in the input text")
         return None
+
+    return result
+
 
 ######## STT LangChain ########
 async def speech_to_text_modification(connection_uuid, converted_text):
@@ -263,6 +257,8 @@ async def generate_problems(script, subject, problem_num, problem_types):
                "problem_num" : problem_num,
                "problem_types" : problem_types
         })
+    
+    print("[LangChain]-[generate_problems] Model Result \n", problem_result)
 
     json_result = parse_JSON(problem_result, True)
 
