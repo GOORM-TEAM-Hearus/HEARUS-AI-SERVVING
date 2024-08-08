@@ -67,6 +67,9 @@ def parse_JSON(text, is_array=False):
             json_str = re.sub(r'\s+', ' ', json_str)
             parsed_json = json.loads(json_str)
             print(parsed_json)
+
+            if is_array is False:
+                return parsed_json
             result.append(parsed_json)
         except json.JSONDecodeError as e:
             print(f"[LangChain]-[parse_JSON] Error parsing JSON: {str(e)}")
@@ -114,8 +117,11 @@ async def speech_to_text_modification(connection_uuid, converted_text):
         5. 추가적인 설명 없이 수정된 현재 음성 인식 결과만 출력해주세요.
         6. 문장에 부가 설명을 붙이지 말고 오로지 제공된 현재 음성인식 결과에서만 수정해주세요.
         7. 이전 결과의 내용을 반복하는 형태로 내용을 수정하지 말아주세요
-                                              
-        개선된 문장만을 "result" key의 value에 담아 JSON 형태로 제공해주세요
+        
+        {{
+            'result' : 'value'
+        }}
+        위와 같이 개선된 문장만을 "result" key의 value에 담아 JSON 형태로 제공해주세요
         결과 외에는 그 어떤 텍스트도 답변하지 말아주세요
     """)
 
@@ -137,10 +143,12 @@ async def speech_to_text_modification(connection_uuid, converted_text):
     # )
 
     corrected_text = await asyncio.to_thread(chain1.invoke, {"textData": textData})
+    print("[LangChain]-[speech_to_text_modification]", corrected_text)
     json_result = parse_JSON(corrected_text)
+    
 
     if json_result:
-        result_value = json_result.get('result')
+        result_value = json_result['result']
         if result_value:
             print("\n [LangChain]-[" + model_id + "] Result value:", result_value, "\n")
         else:
