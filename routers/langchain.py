@@ -60,6 +60,7 @@ def parse_JSON(text, is_array=False):
 
     result = []
     json_objects = extract_json_objects(text)
+    print("[parse_JSON]-[extract_json_objects]", json_objects)
 
     for json_str in json_objects:
         try:
@@ -181,6 +182,65 @@ def delete_data_by_uuid(connection_uuid):
         print(f"[LangChain] Data with connection_uuid '{connection_uuid}' has been deleted from ChromaDB.")
     else:
         print(f"[LangChain] No data found with connection_uuid '{connection_uuid}' in ChromaDB.")
+
+
+######## Restructure LangChain ########
+async def restructure_script(script):
+    print("\n[LangChain]-[restructure_script] script :", script, "\n")
+
+    prompt = ChatPromptTemplate.from_template("""
+        당신은 대한민국 대학교 교수입니다.
+
+        {script}
+
+        위 스크립트는 대한민국의 대학교 수준의 강의 내용인데
+        해당 스크립트를 문단별로 묶고, 중요한 핵심 단어나 문장을 표시하고자 합니다.
+	
+        [
+            "문장1",
+            "문장2",
+            ...
+        ]
+        현재 주어지는 스크립트는 위와 같은 구조로 구성되어 있을 것입니다.
+
+        {{
+            processedScript : [
+                "문단1",
+                "문단2",
+                ...
+                "마지막 문단"
+            ]
+        }}
+        관련있는 문장들을 하나의 문단으로 묶어서 processedScript List의 하나의 String 내에 넣어주세요
+        배역의 각 문단이 끝나고 시작하는 " 사이에는 반드시 ,를 넣어주세요
+        결과는 위 형태에 반드시 맞추어 유일하게 processedScript를 Key로 가지는 JSON 데이터를 제공해주세요
+
+        이때 아래의 조건을 지키면서 새로운 processedScript를 생성해주세요
+        1. 문법적으로 올바르지 않은 내용이 있다면 그것만 수정해주세요
+        2. 중요한 단어 양 옆에 **단어** 과 같이 "**"를 붙여주세요
+        3. 이상한 단어들이 들어가지 않게 꼼꼼하고 정확하게 생성해주세요
+        한국어로 답변해주세요
+    """)
+
+    chain = (
+        prompt 
+        | llm 
+        | StrOutputParser()
+    )
+
+    problem_result = await asyncio.to_thread(
+        chain.invoke, {
+               "script" : script
+        })
+    
+    print("[LangChain]-[restructure_script] Model Result \n", problem_result)
+
+    json_result = parse_JSON(problem_result, True)
+
+    if not json_result:
+        return None
+    
+    return json_result[0]
 
 
 ######## Problem LangChain ########

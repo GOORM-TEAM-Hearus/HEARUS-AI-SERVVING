@@ -9,6 +9,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from routers import langchain
 
+from typing import List
+
 app = FastAPI()
 
 # Add CORS middleware
@@ -40,6 +42,21 @@ async def sttModification(text: str = Query(..., description="The text to be mod
     ))
 
     return llm_result
+
+
+class scriptReq(BaseModel):
+    processedScript: List[str]
+
+@app.post("/restructure_script")
+async def restructure_script(script_Req : scriptReq):
+    print("[main]-[restructure_script] API Call")
+
+    restructure_result = await asyncio.create_task(langchain.restructure_script(
+        script_Req.processedScript
+    ))
+    
+    return restructure_result
+
 
 class problemReq(BaseModel):
     script: str
