@@ -188,6 +188,11 @@ def delete_data_by_uuid(connection_uuid):
 async def restructure_script(script):
     print("\n[LangChain]-[restructure_script] script :", script, "\n")
 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if device.type == "cuda":
+        torch.cuda.empty_cache()
+    print("[LangChain]-[restructure_script] CUDA cache flushed")
+
     prompt = ChatPromptTemplate.from_template("""
         당신은 대한민국 대학교 교수입니다.
 
@@ -218,8 +223,12 @@ async def restructure_script(script):
         이때 아래의 조건을 지키면서 새로운 processedScript를 생성해주세요
         1. 문법적으로 올바르지 않은 내용이 있다면 그것만 수정해주세요
         2. 중요한 단어 양 옆에 **단어** 과 같이 "**"를 붙여주세요
-        3. 이상한 단어들이 들어가지 않게 꼼꼼하고 정확하게 생성해주세요
-        한국어로 답변해주세요
+        3. 입력으로 받은 processedScript 이외에 다른 데이터를 추가하지 말아주세요
+        4. JSON 형태를 온전하게 지켜서 별도의 설명없이 JSON 값만 답변해주세요
+        5. 이상한 단어들이 들어가지 않게 꼼꼼하고 정확하게 생성해주세요
+        6. 각 processedScript 내부 요소 양 옆에 반드시 쌍따옴표 (")를 하나씩만 넣어주세요
+        7. 각 문장의 마침표(.) 다음에 오는 콤마(,)는 삭제해주세요
+        8. 한국어로로 답변해주세요
     """)
 
     chain = (
