@@ -92,6 +92,8 @@ Hearus는 대학교 교내 청각장애 학우 대필지원 도우미 활동에�
 ## 문의
 프로젝트에 대한 문의사항이 있으시다면 [ISSUE](https://github.com/TEAM-Hearus/.github/tree/main/ISSUE_TEMPLATE)를 생성해 주세요.
 
+</br>
+
 ---
 <p align="center">
   모두의 들을 권리를 위하여 Hearus가 함께하겠습니다
