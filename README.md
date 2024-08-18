@@ -12,7 +12,7 @@ Hearus는 대학교 교내 청각장애 학우 대필지원 도우미 활동에�
 - API 기반 LLM 및 AI Model 서빙 LangChain 구축
 
 ## 주요 기능
-![image](https://github.com/user-attachments/assets/12aea7b6-c09f-4c3e-a626-aa369d3a6518)
+![image](https://github.com/user-attachments/assets/56a70ea8-b17e-417a-aeb2-a219a531a3c8)
 1. **실시간 음성 인식**: Whisper 모델을 사용하여 고정밀 음성-텍스트 변환 제공
 
 ![image](https://github.com/user-attachments/assets/03b429eb-5157-45be-a542-10a368d782a7)
