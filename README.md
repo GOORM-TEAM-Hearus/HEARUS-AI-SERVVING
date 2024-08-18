@@ -20,7 +20,7 @@ Hearus는 대학교 교내 청각장애 학우 대필지원 도우미 활동에�
 
 ![image](https://github.com/user-attachments/assets/34f49612-f0cb-4656-bde8-bd356e35924b)
 3. **Ollama 문제생성**: LangChain을 활용한 대규모 언어 모델 서비스 구현
-
+</br>
 4. **비동기 고성능 처리**: FastAPI의 비동기 기능을 활용한 효율적인 요청 처리
 
 ## 기술 스택
