@@ -63,7 +63,17 @@ Hearus는 대학교 교내 청각장애 학우 대필지원 도우미 활동에�
    pip install -r requirements.txt
    ```
 
-5. 애플리케이션 실행
+5. Ollama 및 llama3 설치
+   ```
+   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+   pip install -r requirements.txt
+   curl -fsSL https://ollama.com/install.sh | sh
+
+   ollama serve
+   ollama pull llama3
+   ```
+
+6. 애플리케이션 실행
    ```
    python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
    ```
