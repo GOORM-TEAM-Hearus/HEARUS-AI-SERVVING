@@ -101,14 +101,15 @@ async def llm_thread(websocket: WebSocket, connection_uuid):
                 transcrition_result = message.transcrition_result
                 text_id = message.text_id
 
-                # langchain.speech_to_text_modification 함수를 별도의 비동기 작업으로 실행
-                llm_result = await asyncio.create_task(langchain.speech_to_text_modification(
-                    connection_uuid, 
-                    transcrition_result
-                ))
+                while True:
+                    # langchain.speech_to_text_modification 함수를 별도의 비동기 작업으로 실행
+                    llm_result = await asyncio.create_task(langchain.speech_to_text_modification(
+                        connection_uuid, 
+                        transcrition_result
+                    ))
 
-                if not llm_result:
-                    llm_result = transcrition_result
+                    if llm_result:
+                        break
 
                 message_data = {
                     "textId": text_id,
