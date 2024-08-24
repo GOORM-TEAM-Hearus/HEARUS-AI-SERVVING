@@ -105,7 +105,9 @@ async def speech_to_text_modification(connection_uuid, converted_text):
     # """
 
     textData = f"""
-    {converted_text}
+    {{
+        "result" : "{converted_text}"
+    }}
     """
 
     # PromptTemplate : 원시 사용자 입력을 더 나은 입력으로 변환
@@ -113,17 +115,17 @@ async def speech_to_text_modification(connection_uuid, converted_text):
     prompt = ChatPromptTemplate.from_template("""
         {textData}
 
-        위 텍스트에 대해서 아래 조건의 작업을 수행해주세요.
-        1. 현재 텍스트를 문법적으로 올바르게 수정해주세요.
-        2. 현재 텍스트에서 잡음이나 오류를 제거해주세요.
+        위 JSON의 value 텍스트에 대해서 아래 조건의 작업을 수행해주세요.
+        1. value 텍스트를 문법적으로 올바르게 수정해주세요.
+        2. value 텍스트에서 잡음이나 오류를 제거해주세요.
         3. 답변은 한국어로 번역해주세요.
         
         {{
-            'result' : 'value'
+            "result" : "value"
         }}
         위와 같이 개선된 문장만을 "result" key의 value에 담아 JSON 형태로 제공해주세요
         JSON 형태를 온전하게 지켜서 별도의 설명없이 JSON 값만 답변해주세요
-        결과 외에는 그 어떤 텍스트도 답변하지 말아주세요
+        절대로 결과 외에는 value 텍스트에 설명을 추가하지 마세요
     """)
 
     chain1 = (
