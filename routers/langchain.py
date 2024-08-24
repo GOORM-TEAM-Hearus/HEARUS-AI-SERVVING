@@ -96,10 +96,15 @@ async def speech_to_text_modification(connection_uuid, converted_text):
     print("[LangChain] Previous context : ", context)
     print("[LangChain] Converted Text : ", converted_text, "\n")
 
-    textData = f"""
-    이전 음성 인식 결과:
-    {context}
+    # textData = f"""
+    # 이전 음성 인식 결과:
+    # {context}
 
+    # 현재 음성 인식 결과
+    # {converted_text}
+    # """
+
+    textData = f"""
     현재 음성 인식 결과
     {converted_text}
     """
@@ -110,7 +115,7 @@ async def speech_to_text_modification(connection_uuid, converted_text):
         {textData}
 
         위 텍스트에 대해서 아래 조건의 작업을 수행해주세요.
-        1. 이전 텍스트 고려하여 현재 텍스트를 문법적으로 올바르게 수정해주세요.
+        1. 현재 텍스트를 문법적으로 올바르게 수정해주세요.
         2. 현재 텍스트에서 잡음이나 오류를 제거해주세요.
         3. 답변은 한국어로 번역해주세요.
         
