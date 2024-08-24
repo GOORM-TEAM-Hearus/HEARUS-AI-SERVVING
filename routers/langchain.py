@@ -93,7 +93,7 @@ async def speech_to_text_modification(connection_uuid, converted_text):
     )
     context = " ".join(docs['documents'][-1:])
     print("\n[LangChain] Connection UUID : ", connection_uuid)
-    print("[LangChain] Previous context : ", context)
+    # print("[LangChain] Previous context : ", context)
     print("[LangChain] Converted Text : ", converted_text, "\n")
 
     # textData = f"""
@@ -105,7 +105,6 @@ async def speech_to_text_modification(connection_uuid, converted_text):
     # """
 
     textData = f"""
-    현재 음성 인식 결과
     {converted_text}
     """
 
