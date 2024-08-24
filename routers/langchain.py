@@ -118,7 +118,8 @@ async def speech_to_text_modification(connection_uuid, converted_text):
         위 JSON의 value 텍스트에 대해서 아래 조건의 작업을 수행해주세요.
         1. value 텍스트를 문법적으로 올바르게 수정해주세요.
         2. value 텍스트에서 잡음이나 오류를 제거해주세요.
-        3. 답변은 한국어로 번역해주세요.
+        3. 만약 문장이 끝날 경우 존댓말로 작성해주세요
+        4. 답변은 한국어로 번역해주세요.
         
         {{
             "result" : "value"
