@@ -1,0 +1,61 @@
+This product includes software developed by various open-source projects under different licenses.
+
+The following third-party components are used in this project:
+
+1. **FastAPI** (version 0.115.0)
+   - License: MIT License
+   - URL: https://github.com/tiangolo/fastapi
+
+2. **Uvicorn** (version 0.30.6)
+   - License: BSD 3-Clause License
+   - URL: https://github.com/encode/uvicorn
+
+3. **Python-Dotenv** (version 1.0.1)
+   - License: BSD 3-Clause License
+   - URL: https://github.com/theskumar/python-dotenv
+
+4. **Websockets** (version 13.1)
+   - License: BSD 3-Clause License
+   - URL: https://github.com/aaugustin/websockets
+
+5. **Pydantic** (version 2.9.2)
+   - License: MIT License
+   - URL: https://github.com/pydantic/pydantic
+
+6. **Numpy** (version 2.1.1)
+   - License: BSD 3-Clause License
+   - URL: https://github.com/numpy/numpy
+
+7. **Whisper** (version 20231117)
+   - License: MIT License
+   - URL: https://github.com/openai/whisper
+
+8. **Langchain Core** (version 0.3.6)
+   - License: MIT License
+   - URL: https://github.com/hwchase17/langchain
+
+9. **Langchain Huggingface** (version 0.1.0)
+   - License: MIT License
+   - URL: https://github.com/langchain-ai/langchain-huggingface
+
+10. **Langchain Community** (version 0.3.1)
+    - License: MIT License
+    - URL: https://github.com/langchain-ai/langchain-community
+
+11. **ChromaDB** (version 0.5.7)
+    - License: Apache License 2.0
+    - URL: https://github.com/chroma-core/chroma
+
+12. **Sentence-Transformers** (version 3.1.1)
+    - License: Apache License 2.0
+    - URL: https://github.com/UKPLab/sentence-transformers
+
+13. **Torch** (version 1.13.0)
+    - License: BSD 3-Clause License
+    - URL: https://github.com/pytorch/pytorch
+
+14. **Ollama** (version 0.3.12)
+    - License: MIT License
+    - URL: https://ollama.com
+
+Each of the above software components has been provided under the terms of their respective licenses. See individual license files for details.
