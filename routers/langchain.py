@@ -197,10 +197,10 @@ async def restructure_script(script):
     print("[LangChain]-[restructure_script] CUDA cache flushed")
 
     prompt = ChatPromptTemplate.from_template("""
-        당신은 대한민국 대학교 교수입니다.
-
-        {script}
-
+        {{
+            {script}
+        }}
+                                              
         위 스크립트는 대한민국의 대학교 수준의 강의 내용인데
         해당 스크립트를 문단별로 묶고, 중요한 핵심 단어나 문장을 표시하고자 합니다.
 	
