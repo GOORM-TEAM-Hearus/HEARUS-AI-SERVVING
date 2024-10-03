@@ -68,6 +68,19 @@ def speechToText(whisper_model, stop_event):
                     / 32768.0
                 )
 
+                # Calculate RMS (Root Mean Square) of the audio signal
+                rms = np.sqrt(np.mean(audio_np**2))
+                if rms == 0:
+                    decibel = -np.inf
+                else:
+                    decibel = 20 * np.log10(rms)
+
+                threshold_db = -30  # Set your desired threshold in decibels
+
+                if decibel < threshold_db:
+                    print(f"[STTThread] Audio level below threshold ({decibel:.2f} dB). Skipping transcription.")
+                    continue
+
                 # Read the transcription.
                 result = whisper_model.transcribe(
                     audio_np, fp16=torch.cuda.is_available(), language="ko"
