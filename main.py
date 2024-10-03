@@ -75,7 +75,7 @@ async def generate_problems(problem_req: problemReq):
     problem_num = data.problem_num
     problem_types = data.problem_types
 
-    generate_result = await asyncio.create_task(langchain.generate_problems(
+    generate_result = await asyncio.create_task(langchain.generate_problems_full(
         script,
         subject,
         problem_num,

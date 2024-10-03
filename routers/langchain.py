@@ -255,6 +255,40 @@ async def restructure_script(script):
 
 
 ######## Problem LangChain ########
+async def generate_problems_full(script, subject, problem_num, problem_types):
+    total_problems = []
+    remaining = problem_num
+    # max_attempts = 5  # Limit the number of attempts to prevent infinite loops
+    attempts = 0
+
+    while len(total_problems) < problem_num : #and attempts < max_attempts:
+        current_num = remaining
+        print(f"\n[LangChain]-[generate_problems_full] Generating {current_num} problems (Attempt {attempts + 1})\n")
+        generated_problems = await generate_problems(script, subject, current_num, problem_types)
+
+        if not generated_problems:
+            print("[LangChain]-[generate_problems_full] No problems generated, stopping.")
+            break
+
+        # Ensure generated_problems is a list
+        if not isinstance(generated_problems, list):
+            generated_problems = [generated_problems]
+
+        total_problems.extend(generated_problems)
+        # Remove any duplicates if necessary
+        total_problems = list({json.dumps(problem, sort_keys=True): problem for problem in total_problems}.values())
+        remaining = problem_num - len(total_problems)
+        attempts += 1
+
+    if len(total_problems) < problem_num:
+        print(f"[LangChain]-[generate_problems_full] Only {len(total_problems)} problems were generated after {attempts} attempts.")
+
+    # Truncate the list to the desired number of problems
+    total_problems = total_problems[:problem_num]
+
+    return total_problems
+
+
 async def generate_problems(script, subject, problem_num, problem_types):
     print("\n[LangChain]-[generate_problems] Subject :", subject)
     print("[LangChain]-[generate_problems] Problem_num :", problem_num)
