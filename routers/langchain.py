@@ -336,7 +336,7 @@ async def generate_problems(script, subject, problem_num, problem_types):
         type : 문제 Type 4개 중에 1개
 
         direction : 문제 질문
-        direction : type이 OXChoice인 경우에는 direction이 질문 형태가 아닌 서술 형태로 참 또는 거짓일 수 있어야 한다
+        direction : type이 OXChoice인 경우에는 direction에 대한 answer가 참 또는 거짓일 수 있어야 한다
 
         options: MultipleChoice인 경우에만 보기 4개
         options: MultipleChoice이 아닌 다른 Type이면 빈 배열
@@ -344,7 +344,6 @@ async def generate_problems(script, subject, problem_num, problem_types):
 
         answer : 각 문제들에 대한 정답
         answer : MultipleChoice인 경우 options들 중 정답 번호
-        answer : ShortAnswer의 경우 direction에 대한 정답
         answer : OXChoice인 경우 X인 경우 answer는 0, O인 경우 answer는 1
 
         5. 이 중에서 {problem_types}에 해당하는 종류의 문제만 생성해주세요
