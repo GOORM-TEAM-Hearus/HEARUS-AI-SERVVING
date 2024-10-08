@@ -303,10 +303,9 @@ async def generate_problems(script, subject, problem_num, problem_types):
         위 스크립트는 대한민국의 대학교 수준의 {subject}강의 내용인데
         이때 위 스크립트에 기반하여 {problem_num} 개의 문제를 JSON 형식으로 아래 조건에 맞추어서 생성해주세요.
 
-        1. 문제의 Type은 아래와 같이 총 4개만 존재합니다.
+        1. 문제의 Type은 아래와 같이 총 2개만 존재합니다.
 
         MultipleChoice : 객관식, Option은 네개, 즉 사지선다형
-        ShortAnswer : 단답형
         OXChoice : O X 문제
 
         2. 주어진 스크립트에서 시험에 나올 수 있는, 중요한 부분에 대한 문제를 생성해주세요.
