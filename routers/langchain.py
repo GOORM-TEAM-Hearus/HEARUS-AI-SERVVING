@@ -338,8 +338,7 @@ async def generate_problems(script, subject, problem_num, problem_types):
         direction : type이 OXChoice인 경우에는 direction에 대한 answer가 참 또는 거짓일 수 있어야 한다
 
         options: MultipleChoice인 경우에만 보기 4개
-        options: MultipleChoice이 아닌 다른 Type이면 빈 배열
-        options : OXChoice인 경우에도 빈 배열
+        options : OXChoice인 경우 빈 배열
 
         answer : 각 문제들에 대한 정답
         answer : MultipleChoice인 경우 options들 중 정답 번호

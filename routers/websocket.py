@@ -75,7 +75,7 @@ def speechToText(whisper_model, stop_event):
                 else:
                     decibel = 20 * np.log10(rms)
 
-                threshold_db = -30  # Set your desired threshold in decibels
+                threshold_db = -60  # Set your desired threshold in decibels
 
                 if decibel < threshold_db:
                     print(f"[STTThread] Audio level below threshold ({decibel:.2f} dB). Skipping transcription.")
