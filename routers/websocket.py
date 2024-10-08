@@ -75,7 +75,7 @@ def speechToText(whisper_model, stop_event):
                 else:
                     decibel = 20 * np.log10(rms)
 
-                threshold_db = -60  # Set your desired threshold in decibels
+                threshold_db = -40  # Set your desired threshold in decibels
 
                 if decibel < threshold_db:
                     print(f"[STTThread] Audio level below threshold ({decibel:.2f} dB). Skipping transcription.")
@@ -86,7 +86,7 @@ def speechToText(whisper_model, stop_event):
                     audio_np, fp16=torch.cuda.is_available(), language="ko"
                 )
                 transcrition_result = result["text"].strip()
-                print("[STTThread] Transition Result '" + transcrition_result + "'")
+                print("[STTThread] Transition Result '" + transcrition_result + "'" + " (" + decibel + ")")
 
                 if transcrition_result != "":
                     result_queue.put(transcrition_result)
