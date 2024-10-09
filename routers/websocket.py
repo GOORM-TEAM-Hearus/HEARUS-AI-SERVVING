@@ -86,7 +86,7 @@ def speechToText(whisper_model, stop_event):
                     audio_np, fp16=torch.cuda.is_available(), language="ko"
                 )
                 transcrition_result = result["text"].strip()
-                print("[STTThread] Transition Result '" + transcrition_result + "'" + " (" + decibel + ")")
+                print("[STTThread] Transition Result '" + transcrition_result + "'" + " (" + str(decibel) + " dB)")
 
                 if transcrition_result != "":
                     result_queue.put(transcrition_result)
