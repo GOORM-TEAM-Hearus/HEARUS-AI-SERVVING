@@ -20,7 +20,7 @@ Hearus는 대학교 교내 청각장애 학우 대필지원 도우미 활동에�
 ![image](https://github.com/user-attachments/assets/03b429eb-5157-45be-a542-10a368d782a7)
 2. **Ollama 하이라이팅, 스크립트 재구조화**: 텍스트 데이터에 대한 분석 및 처리
 
-![image](https://github.com/user-attachments/assets/34f49612-f0cb-4656-bde8-bd356e35924b)
+![Hearus-OSDC-문제생성 Flow drawio](https://github.com/user-attachments/assets/2e279113-94a1-4110-85fb-0e464e92e12d)
 3. **Ollama 문제생성**: LangChain을 활용한 LLM 서비스 구현
 </br>
 4. **비동기 고성능 처리**: FastAPI의 비동기 기능을 활용한 효율적인 요청 처리
