@@ -314,7 +314,7 @@ async def generate_problems(script, subject, problem_num, problem_types):
 
         ```
         [
-            {
+            {{
                 "type": "",
                 "direction": "",
                 "options": [
@@ -324,32 +324,30 @@ async def generate_problems(script, subject, problem_num, problem_types):
                     ""
                 ],
                 "answer": ""
-            },
-            {
+            }},
+            {{
                 // Next question
-            },
+            }},
             ...
         ]
         ```
 
         Below is a description of each JSON element. Please generate them perfectly according to the instructions below.
 
-        - **type: One of the two question Types
-        - **direction**: The question prompt
+        - type: One of the two question Types
+        - direction: The question prompt
         - For OXChoice, the answer to the direction must be either true or false
-        - **options**: Only for MultipleChoice questions, containing four options
+        - options: Only for MultipleChoice questions, containing four options
         - For OXChoice, an empty array
-        - **answer**: The correct answer for each question
+        - answer: The correct answer for each question
         - For MultipleChoice, the correct option number among the options
-        - For OXChoice, use `0` for X (False) and `1` for O (True)
+        - For OXChoice, use '0' for X (False) and '1' for O (True)
 
         5. Among these, please generate only the types of questions corresponding to {problem_types}.
         6. For each question, please generate the JSON elements matching its Type.
         7. Always include the direction and answer for all questions.
         8. Please create all questions in Korean.
         9. Please take your time to consider carefully and generate accurately.
-
-        Please translate the above prompt exactly into English.
     """)
 
     chain = (
