@@ -36,6 +36,11 @@ Hearus는 대학교 교내 청각장애 학우 대필지원 도우미 활동에�
 | Vector DB | Chroma |
 | Development Tools | pip, venv |
 
+## 📂 API Document
+프로젝트의 API 명세는 아래 링크에서 확인하실 수 있습니다.
+</br>
+[HEARUS-AI-SERVING/wiki](https://github.com/TEAM-Hearus/HEARUS-AI-SERVING/wiki)
+
 ## 📄 라이선스
 이 프로젝트는 MIT License 하에 배포됩니다. 
 </br>
