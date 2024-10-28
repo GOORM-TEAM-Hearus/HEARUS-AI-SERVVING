@@ -115,18 +115,18 @@ async def speech_to_text_modification(connection_uuid, converted_text):
     prompt = ChatPromptTemplate.from_template("""
         {textData}
 
-        위 JSON의 value 텍스트에 대해서 아래 조건의 작업을 수행해주세요.
-        1. value 텍스트를 문법적으로 올바르게 수정해주세요.
-        2. value 텍스트에서 잡음이나 오류를 제거해주세요.
-        3. 만약 문장이 끝날 경우 존댓말로 작성해주세요
-        4. 답변은 한국어로 번역해주세요.
-        
+        Please perform the following tasks on the value text of the JSON above.
+        1. Correct the value text to be grammatically correct.
+        2. Remove noise or errors from the value text.
+        3. If a sentence ends, please write it in polite (formal) speech.
+        4. Please translate the answer into Korean.
+
         {{
             "result" : "value"
         }}
-        위와 같이 개선된 문장만을 "result" key의 value에 담아 JSON 형태로 제공해주세요
-        JSON 형태를 온전하게 지켜서 별도의 설명없이 JSON 값만 답변해주세요
-        절대로 결과 외에는 value 텍스트에 설명을 추가하지 마세요
+        Please provide only the improved sentences as the value of the "result" key in JSON format as shown above.
+        Please fully maintain the JSON format and answer only with the JSON value without any additional explanations.
+        Do not add any explanations to the value text other than the result under any circumstances.
     """)
 
     chain1 = (
@@ -200,37 +200,37 @@ async def restructure_script(script):
         {{
             {script}
         }}
-                                              
-        위 스크립트는 대한민국의 대학교 수준의 강의 내용인데
-        해당 스크립트를 문단별로 묶고, 중요한 핵심 단어나 문장을 표시하고자 합니다.
-	
+
+        The above script is university-level lecture content in South Korea.
+        We aim to group this script into paragraphs and highlight important key words or sentences.
+
         [
-            "문장1",
-            "문장2",
+            "Sentence1",
+            "Sentence2",
             ...
         ]
-        현재 주어지는 스크립트는 위와 같은 구조로 구성되어 있을 것입니다.
+        The script provided will be structured like the above.
 
         {{
             processedScript : [
-                "문단1",
-                "문단2",
+                "Paragraph1",
+                "Paragraph2",
                 ...
-                "마지막 문단"
+                "Last Paragraph"
             ]
         }}
-        관련있는 문장들을 하나의 문단으로 묶어서 processedScript List의 하나의 String 내에 넣어주세요
-        배역의 각 문단이 끝나고 시작하는 " 사이에는 반드시 ,를 넣어주세요
-        결과는 위 형태에 반드시 맞추어 유일하게 processedScript를 Key로 가지는 JSON 데이터를 제공해주세요
+        Please group related sentences into one paragraph and place them within a single string in the processedScript list.
+        Be sure to include a comma between the quotation marks that end and start each paragraph.
+        Provide the result as JSON data that matches the above format exactly and has only processedScript as the key.
 
-        이때 아래의 조건을 지키면서 새로운 processedScript를 생성해주세요
-        1. 문법적으로 올바르지 않은 내용이 있다면 그것만 수정해주세요
-        2. 중요한 단어 양 옆에 **단어** 과 같이 "**"를 붙여주세요
-        3. 입력으로 받은 processedScript 이외에 다른 데이터를 추가하지 말아주세요
-        4. JSON 형태를 온전하게 지켜서 별도의 설명없이 JSON 값만 답변해주세요
-        5. 이상한 단어들이 들어가지 않게 꼼꼼하고 정확하게 생성해주세요
-        7. 각 문장의 마침표(.) 다음에 오는 콤마(,)는 삭제해주세요
-        8. 한국어로로 답변해주세요
+        While adhering to the following conditions, please generate a new processedScript:
+        1. If there is any grammatically incorrect content, correct only that.
+        2. Surround important words with "**word**" by adding "**" on both sides.
+        3. Do not add any data other than the processedScript you received as input.
+        4. Keep the JSON format intact and answer only with the JSON value without any additional explanation.
+        5. Be meticulous and precise to ensure no strange words are included.
+        7. Delete any commas that come after sentence-ending periods (.).
+        8. Answer in Korean.
     """)
 
     chain = (
@@ -295,60 +295,61 @@ async def generate_problems(script, subject, problem_num, problem_types):
     print("[LangChain]-[generate_problems] Problem Types : ", problem_types, "\n")
 
     prompt = ChatPromptTemplate.from_template("""
-        당신은 대한민국 대학교 {subject} 교수입니다.
-        당신은 학생들의 학습 수준을 평가하기 위해서 시험 문제를 출제하는 중입니다.
+        You are a professor of {subject} at a university in South Korea.
+        You are currently creating exam questions to assess your students' level of learning.
 
         {script}
 
-        위 스크립트는 대한민국의 대학교 수준의 {subject}강의 내용인데
-        이때 위 스크립트에 기반하여 {problem_num} 개의 문제를 JSON 형식으로 아래 조건에 맞추어서 생성해주세요.
+        The above script is content from a university-level {subject} lecture in South Korea.
+        Based on the above script, please generate {problem_num} questions in JSON format according to the following conditions.
 
-        1. 문제의 Type은 아래와 같이 총 2개만 존재합니다.
+        1. There are only 2 Types of questions as follows:
 
-        MultipleChoice : 객관식, Option은 네개, 즉 사지선다형
-        OXChoice : O X 문제
+        - MultipleChoice: Multiple-choice questions with four options (i.e., four-choice questions)
+        - OXChoice: True/False questions (O/X questions)
 
-        2. 주어진 스크립트에서 시험에 나올 수 있는, 중요한 부분에 대한 문제를 생성해주세요.
-        3. 추가적인 설명 없이 JSON 결과만 제공해주세요.
-        4. 문제 JSON은 아래와 같은 형태여야만 합니다.
+        2. Please create questions about important parts from the given script that could appear on the exam.
+        3. Provide only the JSON result without any additional explanations.
+        4. The question JSON must be in the following format:
 
-            [
-                {{
-                    "type": "",
-                    "direction": "",
-                    "options": [
+        ```
+        [
+            {
+                "type": "",
+                "direction": "",
+                "options": [
                     "",
                     "",
                     "",
                     ""
-                    ],
-                    "answer": ""
-                }},
-                {{
-                    // 다음 문제
-                }},
-                ...
-            ]
+                ],
+                "answer": ""
+            },
+            {
+                // Next question
+            },
+            ...
+        ]
+        ```
 
-        아래는 각 JSON의 요소들에 대한 설명입니다. 아래의 설명에 완벽하게 맞추어서 생성해주세요.
+        Below is a description of each JSON element. Please generate them perfectly according to the instructions below.
 
-        type : 문제 Type 4개 중에 1개
+        - **type: One of the two question Types
+        - **direction**: The question prompt
+        - For OXChoice, the answer to the direction must be either true or false
+        - **options**: Only for MultipleChoice questions, containing four options
+        - For OXChoice, an empty array
+        - **answer**: The correct answer for each question
+        - For MultipleChoice, the correct option number among the options
+        - For OXChoice, use `0` for X (False) and `1` for O (True)
 
-        direction : 문제 질문
-        direction : type이 OXChoice인 경우에는 direction에 대한 answer가 참 또는 거짓일 수 있어야 한다
+        5. Among these, please generate only the types of questions corresponding to {problem_types}.
+        6. For each question, please generate the JSON elements matching its Type.
+        7. Always include the direction and answer for all questions.
+        8. Please create all questions in Korean.
+        9. Please take your time to consider carefully and generate accurately.
 
-        options: MultipleChoice인 경우에만 보기 4개
-        options : OXChoice인 경우 빈 배열
-
-        answer : 각 문제들에 대한 정답
-        answer : MultipleChoice인 경우 options들 중 정답 번호
-        answer : OXChoice인 경우 X인 경우 answer는 0, O인 경우 answer는 1
-
-        5. 이 중에서 {problem_types}에 해당하는 종류의 문제만 생성해주세요
-        6. 각 문제의 Type에 맞는 JSON 요소들을 생성해주세요
-        7. 항상 모든 문제에 대한 direction과 answer는 꼭 생성해주세요
-        8. 문제는 모두 한국어로 생성해주세요
-        9. 이를 생성할 때 고민의 시간을 가지고 정확하게 생성해주새요
+        Please translate the above prompt exactly into English.
     """)
 
     chain = (
