@@ -9,19 +9,19 @@ Hearus는 대학교 교내 청각장애 학우 대필지원 도우미 활동에�
 
 ## MVP Model
 ![image](https://github.com/user-attachments/assets/6b86e0fc-93fa-4fc4-a77f-1750009f4488)
-- 고성능 비동기 처리를 위한 FastAPI 프레임워크 사용
+- 비동기 처리를 위한 FastAPI 프레임워크 사용
 - 실시간 음성 인식 및 자연어 처리 모델 서빙
 - API 기반 LLM 및 AI Model 서빙 LangChain 구축
 
 ## 주요 기능
 ![image](https://github.com/user-attachments/assets/56a70ea8-b17e-417a-aeb2-a219a531a3c8)
-1. **실시간 음성 인식**: Whisper 모델을 사용하여 고정밀 음성-텍스트 변환 제공
+1. **실시간 음성 인식**: Whisper 모델을 사용하여 음성-텍스트 변환 제공
 
 ![image](https://github.com/user-attachments/assets/03b429eb-5157-45be-a542-10a368d782a7)
-2. **Ollama 하이라이팅, 스크립트 재구조화**: 텍스트 데이터에 대한 고급 분석 및 처리
+2. **Ollama 하이라이팅, 스크립트 재구조화**: 텍스트 데이터에 대한 분석 및 처리
 
 ![image](https://github.com/user-attachments/assets/34f49612-f0cb-4656-bde8-bd356e35924b)
-3. **Ollama 문제생성**: LangChain을 활용한 대규모 언어 모델 서비스 구현
+3. **Ollama 문제생성**: LangChain을 활용한 LLM 서비스 구현
 </br>
 4. **비동기 고성능 처리**: FastAPI의 비동기 기능을 활용한 효율적인 요청 처리
 
