@@ -82,7 +82,6 @@ def parse_JSON(text, is_array=False):
 
     return result
 
-
 ######## STT LangChain ########
 async def speech_to_text_modification(connection_uuid, converted_text):
     # 이전 음성 인식 결과 검색

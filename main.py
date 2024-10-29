@@ -36,12 +36,14 @@ def read_root():
 async def sttModification(text: str = Query(..., description="The text to be modified")):
     print("[main]-[sttModification] API Call :", text)
 
-    llm_result = await asyncio.create_task(langchain.speech_to_text_modification(
-        "connection_uuid", 
-        text
-    ))
+    while(True):
+        llm_result = await asyncio.create_task(langchain.speech_to_text_modification(
+            "connection_uuid", 
+            text
+        ))
 
-    return llm_result
+        if(llm_result != None):
+            return llm_result
 
 
 class scriptReq(BaseModel):
