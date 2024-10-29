@@ -126,6 +126,8 @@ async def speech_to_text_modification(connection_uuid, converted_text):
         Please provide only the improved sentences as the value of the "result" key in JSON format as shown above.
         Please fully maintain the JSON format and answer only with the JSON value without any additional explanations.
         Do not add any explanations to the value text other than the result under any circumstances.
+                                              
+        Please answer in Korean.
     """)
 
     chain1 = (
@@ -347,6 +349,7 @@ async def generate_problems(script, subject, problem_num, problem_types):
         7. Always include the direction and answer for all questions.
         8. Please create all questions in Korean.
         9. Please take your time to consider carefully and generate accurately.
+        10. Please answer in Korean.
     """)
 
     chain = (
